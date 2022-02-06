@@ -1,2 +1,2 @@
 jar.enabled = true
-archivesBaseName = 'sb-oauth'
+archivesBaseName = 'sb-oauth2'

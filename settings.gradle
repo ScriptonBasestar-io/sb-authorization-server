@@ -42,27 +42,29 @@ pluginManagement {
     }
 }
 
-plugins {
-    id "com.gradle.enterprise" version "3.8"
-    id "io.spring.ge.conventions" version "0.0.7"
-}
+//plugins {
+//    id "com.gradle.enterprise" version "3.8"
+//    id "io.spring.ge.conventions" version "0.0.7"
+//}
 
-rootProject.name = 'sb-auth-server'
+rootProject.name = 'sb-authorization-server'
 
-FileTree buildFiles = fileTree(rootDir) {
-    include '**/*.gradle'
-    exclude 'build', '**/gradle', 'settings.gradle', 'buildSrc', '/build.gradle', '.*', 'out'
-}
+//FileTree buildFiles = fileTree(rootDir) {
+//    include '**/*.gradle'
+//    exclude 'build', '**/gradle', 'settings.gradle', 'buildSrc', '/build.gradle', '.*', 'out'
+//}
+//
+//buildFiles.each { File buildFile ->
+//    String projectName = buildFile.name.replace('.gradle', '')
+//    String projectPath = ':' + projectName
+//    include projectPath
+//    def project = findProject("${projectPath}")
+//    project.name = projectName
+//    project.projectDir = buildFile.parentFile
+//    project.buildFileName = buildFile.name
+//}
 
-buildFiles.each { File buildFile ->
-    String projectName = buildFile.name.replace('.gradle', '')
-    String projectPath = ':' + projectName
-    include projectPath
-    def project = findProject("${projectPath}")
-    project.name = projectName
-    project.projectDir = buildFile.parentFile
-    project.buildFileName = buildFile.name
-}
+include ':http'
 
 include ':oauth2'
 
