@@ -2,7 +2,7 @@ package org.scriptonbasestar.auth.oauth2.grant_types.authorization_code
 
 import org.scriptonbasestar.auth.oauth2.types.OAuth2ResponseType
 
-data class AuthorizationCodeAuthenticateRequest(
+data class AuthorizationCodeAuthenticateRequestParam(
     val clientId: String,
 
     val responseType: OAuth2ResponseType = OAuth2ResponseType.CODE,

@@ -1,3 +1,11 @@
 package org.scriptonbasestar.auth.oauth2.endpoints
 
-class AuthorizeEndpoint
+import org.scriptonbasestar.auth.oauth2.grant_types.authorization_code.AuthorizationCodeAuthenticateRequestParam
+import org.scriptonbasestar.auth.oauth2.model.Realm
+
+class AuthorizeEndpoint {
+    fun available(callContext: CallContext) {
+    }
+    fun authorization(realm: Realm, request: AuthorizationCodeAuthenticateRequestParam) {
+    }
+}
