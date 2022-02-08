@@ -1,3 +1,0 @@
-package org.scriptonbasestar.auth.core.grant_types.password_credentials
-
-class PasswordCredentialsEndpoint

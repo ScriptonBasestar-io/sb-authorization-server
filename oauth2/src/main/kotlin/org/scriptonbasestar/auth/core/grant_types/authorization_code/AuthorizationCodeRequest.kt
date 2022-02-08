@@ -1,3 +1,0 @@
-package org.scriptonbasestar.auth.core.grant_types.authorization_code
-
-class AuthorizationCodeRequest
