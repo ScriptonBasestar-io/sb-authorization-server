@@ -1,4 +1,4 @@
-package org.scriptonbasestar.auth.oauth2.grant_types.authorization_code
+package org.scriptonbasestar.auth.oauth2.grant_types
 
 import io.konform.validation.Validation
 import io.konform.validation.jsonschema.*
@@ -141,7 +141,7 @@ object AuthorizationCodeDefinition {
             pattern(Regex("https://[a-zA-Z0-9.]/oauth/authorize"))
         }
         CallContext::headers required {
-            exactKeyValue("form", Regex("application/json*"))
+            exactKeyValue("Content-Type", Regex("application/x-www-form-urlencoded"))
         }
         CallContext::formParameters required {
             maxItems(1)
