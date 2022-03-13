@@ -22,8 +22,6 @@ plugins {
 
     id 'org.flywaydb.flyway' apply false
     id 'net.nemerosa.versioning' apply false
-//    id 'com.devskiller.jpa2ddl' version '0.9.12'
-//    id "io.github.divinespear.jpa-schema-generate" version "0.4.0"
 }
 
 group 'org.scriptonbasestar.auth'
@@ -44,7 +42,6 @@ allprojects {
 apply plugin: 'base'
 
 subprojects {
-
     apply plugin: 'java'
     apply plugin: 'groovy'
 
@@ -65,19 +62,19 @@ subprojects {
 
     apply plugin: 'net.nemerosa.versioning'
 
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
     compileKotlin {
         kotlinOptions {
-            jvmTarget = JavaVersion.VERSION_17
+            jvmTarget = JavaVersion.VERSION_11
 //            freeCompilerArgs = ['-Xjsr305=strict']
             freeCompilerArgs += '-Xjsr305=strict'
         }
     }
     compileTestKotlin {
         kotlinOptions {
-            jvmTarget = JavaVersion.VERSION_17
+            jvmTarget = JavaVersion.VERSION_11
 //            freeCompilerArgs = ['-Xjsr305=strict']
             freeCompilerArgs += '-Xjsr305=strict'
         }

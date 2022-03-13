@@ -1,12 +1,12 @@
 package org.scriptonbasestar.auth.oauth2.grant_types
 
-import io.konform.validation.Validation
-import io.konform.validation.jsonschema.*
+
 import org.scriptonbasestar.auth.http.HttpMethod
 import org.scriptonbasestar.auth.oauth2.endpoints.CallContext
-import org.scriptonbasestar.auth.oauth2.thrid.*
 import org.scriptonbasestar.auth.oauth2.types.OAuth2GrantType
 import org.scriptonbasestar.auth.oauth2.types.OAuth2ResponseType
+import org.scriptonbasestar.validation.Validation
+import org.scriptonbasestar.validation.constraint.*
 
 object AuthorizationCodeDefinition {
 
@@ -38,18 +38,19 @@ object AuthorizationCodeDefinition {
             enum(HttpMethod.GET)
         }
         CallContext::path required {
-            pattern(Regex("https://[a-zA-Z0-9.]/oauth/authorize"))
+            pattern("https://[a-zA-Z0-9.]/oauth/authorize")
         }
         CallContext::headers required {
-            exactKeyValue("Content-Type", Regex("application/json*"))
+            hasKey("Content-Type")
+            hasKeyValue("Content-Type", "application/json*")
         }
         CallContext::formParameters required {
-            maxItems(1)
+//            hasKey("")
         }
         CallContext::queryParameters required {
-            existsAndNotEmpty("client_id")
-            exactKeyValue("response_type", "code")
-            notEmpty("scope")
+            hasKey("client_id")
+            hasKey("scope")
+            hasKeyValue("response_type", "code")
         }
     }
 
@@ -83,22 +84,22 @@ object AuthorizationCodeDefinition {
             enum(HttpMethod.GET)
         }
         CallContext::path required {
-            pattern(Regex("https://[a-zA-Z0-9.]/oauth/authorize"))
+            notBlank()
+            pattern("https://[a-zA-Z0-9.]/oauth/authorize")
         }
         CallContext::headers required {
-            exactKeyValue("Content-Type", Regex("application/json*"))
+            hasKeyValue("Content-Type", "application/json*")
         }
         CallContext::formParameters required {
-            maxItems(1)
         }
         CallContext::queryParameters required {
-            existsAndNotEmpty("client_id")
-            exactKeyValue("response_type", "code")
-            existsAndNotEmpty("redirect_uri")
-            existsAndNotEmpty("state")
-            notEmpty("scope")
-            existsAndNotEmpty("code_challenge")
-            existsAndNotEmpty("code_challenge_method")
+            hasKey("client_id")
+            hasKeyValue("response_type", "code")
+            hasKey("redirect_uri")
+            hasKey("state")
+            hasKey("scope")
+            hasKeyValueNotBlank("code_challenge")
+            hasKeyValueNotBlank("code_challenge_method")
         }
     }
 
@@ -133,6 +134,7 @@ object AuthorizationCodeDefinition {
 
         val grantType: OAuth2GrantType = OAuth2GrantType.AUTHORIZATION_CODE,
     )
+
     val accessTokenRequest = Validation<CallContext> {
         CallContext::method required {
             enum(HttpMethod.POST)
@@ -141,18 +143,18 @@ object AuthorizationCodeDefinition {
             pattern(Regex("https://[a-zA-Z0-9.]/oauth/authorize"))
         }
         CallContext::headers required {
-            exactKeyValue("Content-Type", Regex("application/x-www-form-urlencoded"))
+            hasKeyValue("Content-Type", Regex("application/x-www-form-urlencoded"))
         }
         CallContext::formParameters required {
             maxItems(1)
         }
         CallContext::queryParameters required {
-            existsAndNotEmpty("client_id")
-            notEmpty("client_secret")
-            notEmpty("redirect_uri")
-            existsAndNotEmpty("code")
-            notEmpty("code_verifier")
-            exists("grant_type")
+            hasKeyValueNotBlank("client_id")
+            hasKey("client_secret")
+            hasKey("redirect_uri")
+            hasKeyValueNotBlank("code")
+            hasKey("code_verifier")
+            hasKey("grant_type")
         }
     }
 }

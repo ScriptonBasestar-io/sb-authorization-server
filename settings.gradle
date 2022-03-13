@@ -65,6 +65,7 @@ rootProject.name = 'sb-authorization-server'
 //}
 
 include ':http'
+include ':validation'
 
 include ':oauth2'
 
