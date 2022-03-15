@@ -4,8 +4,14 @@ import org.scriptonbasestar.auth.http.HttpMethod
 import org.scriptonbasestar.auth.oauth2.endpoints.CallContext
 import org.scriptonbasestar.auth.oauth2.types.OAuth2GrantType
 import org.scriptonbasestar.auth.oauth2.types.OAuth2ResponseType
+import org.scriptonbasestar.auth.oauth2.validation.hasKey
+import org.scriptonbasestar.auth.oauth2.validation.hasKeyValue
+import org.scriptonbasestar.auth.oauth2.validation.hasKeyValueNotBlank
 import org.scriptonbasestar.validation.Validation
-import org.scriptonbasestar.validation.constraint.*
+import org.scriptonbasestar.validation.constraint.enum
+import org.scriptonbasestar.validation.constraint.maxItems
+import org.scriptonbasestar.validation.constraint.notBlank
+import org.scriptonbasestar.validation.constraint.pattern
 
 object AuthorizationCodeDefinition {
 
@@ -87,7 +93,7 @@ object AuthorizationCodeDefinition {
             pattern("https://[a-zA-Z0-9.]/oauth/authorize")
         }
         CallContext::headers required {
-            hasKeyValue("Content-Type", "application/json*")
+            hasKeyValue("Content-Type", "application/json.*".toRegex())
         }
         CallContext::formParameters required {
         }
@@ -139,10 +145,10 @@ object AuthorizationCodeDefinition {
             enum(HttpMethod.POST)
         }
         CallContext::path required {
-            pattern(Regex("https://[a-zA-Z0-9.]/oauth/authorize"))
+            pattern("https://[a-zA-Z0-9.]/oauth/authorize")
         }
         CallContext::headers required {
-            hasKeyValue("Content-Type", Regex("application/x-www-form-urlencoded"))
+            hasKeyValue("Content-Type", "application/x-www-form-urlencoded")
         }
         CallContext::formParameters required {
             maxItems(1)

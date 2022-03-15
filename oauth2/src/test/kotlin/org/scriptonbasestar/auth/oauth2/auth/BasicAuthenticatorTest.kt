@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.scriptonbasestar.auth.http.CaseInsensitiveOAuthValueMap
 import org.scriptonbasestar.auth.oauth2.endpoints.BasicAuthenticator
 import org.scriptonbasestar.auth.oauth2.endpoints.CallContext
 import java.util.*
@@ -31,7 +32,7 @@ internal class BasicAuthenticatorTest {
 
         val testCredentials = Base64.getEncoder().encodeToString("$username:$password".toByteArray())
 
-        every { callContext.headers } returns mapOf(authorizationKeyName to "basic $testCredentials")
+        every { callContext.headers } returns CaseInsensitiveOAuthValueMap.of(authorizationKeyName to "basic $testCredentials")
         val credentials = BasicAuthenticator(callContext)
             .extractCredentials()
 
