@@ -2,16 +2,11 @@ package org.scriptonbasestar.auth.oauth2.grant_types
 
 import org.scriptonbasestar.auth.http.HttpMethod
 import org.scriptonbasestar.auth.oauth2.endpoints.CallContext
+import org.scriptonbasestar.auth.oauth2.endpoints.EndpointConstants
 import org.scriptonbasestar.auth.oauth2.types.OAuth2GrantType
 import org.scriptonbasestar.auth.oauth2.types.OAuth2ResponseType
-import org.scriptonbasestar.auth.oauth2.validation.hasKey
-import org.scriptonbasestar.auth.oauth2.validation.hasKeyValue
-import org.scriptonbasestar.auth.oauth2.validation.hasKeyValueNotBlank
 import org.scriptonbasestar.validation.Validation
-import org.scriptonbasestar.validation.constraint.enum
-import org.scriptonbasestar.validation.constraint.maxItems
-import org.scriptonbasestar.validation.constraint.notBlank
-import org.scriptonbasestar.validation.constraint.pattern
+import org.scriptonbasestar.validation.constraint.*
 
 object AuthorizationCodeDefinition {
 
@@ -27,7 +22,7 @@ object AuthorizationCodeDefinition {
      * PKCE??
      */
     data class ServerAuthorizeRequest(
-        val path: String = "/oauth/authorize",
+        val path: String = EndpointConstants.AUTHORIZATION_PATH,
         val method: Set<HttpMethod> = setOf(HttpMethod.GET),
 
         val clientId: String,
@@ -39,15 +34,15 @@ object AuthorizationCodeDefinition {
     )
 
     val validateAuthorizeRequest = Validation<CallContext> {
+        CallContext::path required {
+            notBlank()
+            pattern("""https://[a-zA-Z0-9-.]+/oauth/authorize""")
+        }
         CallContext::method required {
             enum(HttpMethod.GET)
         }
-        CallContext::path required {
-            pattern("https://[a-zA-Z0-9.]/oauth/authorize")
-        }
         CallContext::headers required {
-            hasKey("Content-Type")
-            hasKeyValue("Content-Type", "application/json*")
+            hasKeyValue("Content-Type", """application/json?.+""".toRegex())
         }
         CallContext::formParameters required {
 //            hasKey("")
@@ -70,7 +65,7 @@ object AuthorizationCodeDefinition {
      * code_challenge_method=S256
      */
     data class MobileAuthorizeRequest(
-        val path: String = "/oauth/authorize",
+        val path: String = EndpointConstants.AUTHORIZATION_PATH,
         val method: Set<HttpMethod> = setOf(HttpMethod.GET),
 
         val clientId: String,
@@ -85,15 +80,15 @@ object AuthorizationCodeDefinition {
     )
 
     val mobileAuthorizeRequest = Validation<CallContext> {
+        CallContext::path required {
+            notBlank()
+            pattern("""https://[a-zA-Z0-9-.]+/oauth/authorize""")
+        }
         CallContext::method required {
             enum(HttpMethod.GET)
         }
-        CallContext::path required {
-            notBlank()
-            pattern("https://[a-zA-Z0-9.]/oauth/authorize")
-        }
         CallContext::headers required {
-            hasKeyValue("Content-Type", "application/json.*".toRegex())
+            hasKeyValue("Content-Type", """application/json?.+""".toRegex())
         }
         CallContext::formParameters required {
         }
@@ -141,11 +136,12 @@ object AuthorizationCodeDefinition {
     )
 
     val accessTokenRequest = Validation<CallContext> {
+        CallContext::path required {
+            notBlank()
+            pattern("""https://[a-zA-Z0-9-.]+/oauth/authorize""")
+        }
         CallContext::method required {
             enum(HttpMethod.POST)
-        }
-        CallContext::path required {
-            pattern("https://[a-zA-Z0-9.]/oauth/authorize")
         }
         CallContext::headers required {
             hasKeyValue("Content-Type", "application/x-www-form-urlencoded")

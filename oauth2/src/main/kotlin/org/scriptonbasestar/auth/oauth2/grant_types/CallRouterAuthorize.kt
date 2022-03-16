@@ -26,7 +26,8 @@ fun GrantingCall.authorize(passwordGrantRequest: PasswordGrantRequest): AccessTo
         throw InvalidRequestException(INVALID_REQUEST_FIELD_MESSAGE.format("password"))
     }
 
-    val requestedClient = clientService.clientOf(passwordGrantRequest.clientId!!) ?: throw InvalidClientException("client for clientId you provided is null")
+    val requestedClient = clientService.clientOf(passwordGrantRequest.clientId!!)
+        ?: throw InvalidClientException("client for clientId you provided is null")
 
     val authorizedGrantType = AuthorizedGrantType.PASSWORD
     if (!requestedClient.authorizedGrantTypes.contains(authorizedGrantType)) {
@@ -108,7 +109,8 @@ fun GrantingCall.authorize(authorizationCodeRequest: AuthorizationCodeRequest): 
 fun GrantingCall.authorize(clientCredentialsRequest: ClientCredentialsRequest): AccessToken {
     throwExceptionIfUnverifiedClient(clientCredentialsRequest)
 
-    val requestedClient = clientService.clientOf(clientCredentialsRequest.clientId!!) ?: throw InvalidClientException("client for clientId you provided is null")
+    val requestedClient = clientService.clientOf(clientCredentialsRequest.clientId!!)
+        ?: throw InvalidClientException("client for clientId you provided is null")
 
     val scopes = clientCredentialsRequest.scope
         ?.let { ScopeParser.parseScopes(it).toSet() }

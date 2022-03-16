@@ -28,3 +28,6 @@ flows - groovy로 돌릴 수 있으려나
 
 ### chamgo
 * https://blinders.tistory.com/65
+
+### protocol
+https://oauth.net/2/grant-types/authorization-code/

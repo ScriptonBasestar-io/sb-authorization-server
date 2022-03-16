@@ -4,8 +4,12 @@ package org.scriptonbasestar.auth.http
  * oauth에서 key 겹치는거 없음
  */
 abstract class CaseInsensitiveOAuthValueMap(
-    private val map: Map<String, String>,
+    map: Map<String, String>,
 ) : Map<String, String> {
+    private val map: Map<String, String> = map.entries.associate {
+        it.key.lowercase() to it.value
+    }
+
     override operator fun get(key: String): String? =
         map[key.lowercase()]
 
@@ -29,8 +33,4 @@ abstract class CaseInsensitiveOAuthValueMap(
 
     override fun isEmpty(): Boolean =
         map.isEmpty()
-
-    companion object {
-        fun of(pair: Pair<String, String>): Headers = Headers(mapOf(pair.first to pair.second))
-    }
 }
