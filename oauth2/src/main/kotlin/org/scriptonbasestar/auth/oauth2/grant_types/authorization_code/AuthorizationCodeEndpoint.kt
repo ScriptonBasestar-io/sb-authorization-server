@@ -9,7 +9,7 @@ class AuthorizationCodeEndpoint(
     override val protocol: String,
     override val host: String,
     override val path: String,
-    val definition: AuthorizationCodeDefinition.ServerAuthorizeRequest,
+    val definition: AuthorizationCodeDefinition.CommonAuthorizeRequest,
 ) : Endpoint {
     override fun isMatch(requestPath: String): Boolean {
         TODO("Not yet implemented")

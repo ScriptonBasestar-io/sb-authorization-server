@@ -21,7 +21,7 @@ object AuthorizationCodeDefinition {
      * state (recommended)
      * PKCE??
      */
-    data class ServerAuthorizeRequest(
+    data class CommonAuthorizeRequest(
         val path: String = EndpointConstants.AUTHORIZATION_PATH,
         val method: Set<HttpMethod> = setOf(HttpMethod.GET),
 
@@ -33,7 +33,7 @@ object AuthorizationCodeDefinition {
         val state: String?,
     )
 
-    val validateAuthorizeRequest = Validation<CallContext> {
+    val commonAuthorizeRequest = Validation<CallContext> {
         CallContext::path required {
             notBlank()
             pattern("""https://[a-zA-Z0-9-.]+/oauth/authorize""")
@@ -120,7 +120,7 @@ object AuthorizationCodeDefinition {
      * code_verifier (required) mobileonly
      */
     data class AccessTokenRequest(
-        val path: String = "/oauth/token",
+        val path: String = EndpointConstants.TOKEN_PATH,
         val method: Set<HttpMethod> = setOf(HttpMethod.POST),
 
         val clientId: String,
@@ -138,7 +138,7 @@ object AuthorizationCodeDefinition {
     val accessTokenRequest = Validation<CallContext> {
         CallContext::path required {
             notBlank()
-            pattern("""https://[a-zA-Z0-9-.]+/oauth/authorize""")
+            pattern("""https://[a-zA-Z0-9-.]+/oauth/token""")
         }
         CallContext::method required {
             enum(HttpMethod.POST)
@@ -147,15 +147,15 @@ object AuthorizationCodeDefinition {
             hasKeyValue("Content-Type", "application/x-www-form-urlencoded")
         }
         CallContext::formParameters required {
-            maxItems(1)
-        }
-        CallContext::queryParameters required {
             hasKeyValueNotBlank("client_id")
             hasKey("client_secret")
             hasKey("redirect_uri")
             hasKeyValueNotBlank("code")
             hasKey("code_verifier")
-            hasKey("grant_type")
+            hasKeyValue("grant_type", "authorization_code")
+        }
+        CallContext::queryParameters required {
+            maxItems(1)
         }
     }
 }
