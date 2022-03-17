@@ -1,8 +1,8 @@
 package org.scriptonbasestar.auth.oauth2.grant_types
 
 import org.scriptonbasestar.auth.http.HttpMethod
-import org.scriptonbasestar.auth.oauth2.endpoints.CallContext
-import org.scriptonbasestar.auth.oauth2.endpoints.EndpointConstants
+import org.scriptonbasestar.auth.oauth2.context.CallContext
+import org.scriptonbasestar.auth.oauth2.constants.EndpointConstants
 import org.scriptonbasestar.auth.oauth2.types.OAuth2GrantType
 import org.scriptonbasestar.auth.oauth2.types.OAuth2ResponseType
 import org.scriptonbasestar.validation.Validation

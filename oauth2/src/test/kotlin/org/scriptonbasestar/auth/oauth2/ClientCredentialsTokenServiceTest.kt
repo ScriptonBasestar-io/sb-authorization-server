@@ -10,9 +10,9 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.scriptonbasestar.auth.oauth2.endpoints.AuthorizedGrantType
-import org.scriptonbasestar.auth.oauth2.endpoints.CallContext
-import org.scriptonbasestar.auth.oauth2.endpoints.ClientCredentialsRequest
+import org.scriptonbasestar.auth.oauth2.types.AuthorizedGrantType
+import org.scriptonbasestar.auth.oauth2.context.CallContext
+import org.scriptonbasestar.auth.oauth2.grant_types.ClientCredentialsRequest
 import org.scriptonbasestar.auth.oauth2.exceptions.InvalidClientException
 import org.scriptonbasestar.auth.oauth2.grant_types.GrantingCall
 import org.scriptonbasestar.auth.oauth2.grant_types.authorize

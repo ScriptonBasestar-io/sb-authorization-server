@@ -1,4 +1,4 @@
-package org.scriptonbasestar.auth.oauth2.endpoints
+package org.scriptonbasestar.auth.oauth2.context
 
 import org.scriptonbasestar.auth.http.Headers
 import org.scriptonbasestar.auth.http.HttpMethod
@@ -11,8 +11,8 @@ interface CallContext {
     val queryParameters: Params
     val formParameters: Params
 
-    fun respondStatus(statusCode: Int)
-    fun respondHeader(name: String, value: String)
-    fun respondJson(content: Any)
-    fun redirect(uri: String)
+//    fun respondStatus(statusCode: Int)
+//    fun respondHeader(name: String, value: String)
+//    fun respondJson(content: Any)
+//    fun redirect(uri: String)
 }

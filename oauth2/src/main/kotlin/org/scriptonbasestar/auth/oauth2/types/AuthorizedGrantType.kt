@@ -1,4 +1,4 @@
-package org.scriptonbasestar.auth.oauth2.endpoints
+package org.scriptonbasestar.auth.oauth2.types
 
 object AuthorizedGrantType {
     const val IMPLICIT = "implicit"

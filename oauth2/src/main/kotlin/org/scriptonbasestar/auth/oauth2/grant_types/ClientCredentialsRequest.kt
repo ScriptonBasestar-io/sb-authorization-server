@@ -1,4 +1,4 @@
-package org.scriptonbasestar.auth.oauth2.endpoints
+package org.scriptonbasestar.auth.oauth2.grant_types
 
 import org.scriptonbasestar.auth.oauth2.grant_types.ClientRequest
 

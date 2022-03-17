@@ -65,9 +65,9 @@ rootProject.name = 'sb-authorization-server'
 //}
 
 include ':http'
-include ':validation'
+//include ':validation'
 
 include ':oauth2'
 
-include ':example:springboot'
-include ':example:ktor'
+//include ':example:springboot'
+//include ':example:ktor'

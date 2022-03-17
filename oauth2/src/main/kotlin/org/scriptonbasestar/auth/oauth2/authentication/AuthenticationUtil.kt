@@ -1,10 +1,10 @@
-package org.scriptonbasestar.auth.oauth2.endpoints
+package org.scriptonbasestar.auth.oauth2.authentication
 
 import org.scriptonbasestar.auth.oauth2.model.Credentials
 import java.util.*
 
-object BasicAuth {
-    fun parseCredentials(authorization: String): Credentials {
+object AuthenticationUtil {
+    fun parseBasicAuthCredentials(authorization: String): Credentials {
         var username: String? = null
         var password: String? = null
 

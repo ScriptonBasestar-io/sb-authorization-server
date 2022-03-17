@@ -1,6 +1,6 @@
 package org.scriptonbasestar.auth.oauth2.grant_types
 
-import org.scriptonbasestar.auth.oauth2.endpoints.CallContext
+import org.scriptonbasestar.auth.oauth2.context.CallContext
 import org.scriptonbasestar.auth.oauth2.model.ClientService
 import org.scriptonbasestar.auth.oauth2.model.IdentityService
 import org.scriptonbasestar.auth.oauth2.model.token.AccessTokenResponder

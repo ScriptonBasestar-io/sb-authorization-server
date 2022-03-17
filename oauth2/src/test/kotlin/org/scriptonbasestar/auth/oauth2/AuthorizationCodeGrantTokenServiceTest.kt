@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.scriptonbasestar.auth.oauth2.endpoints.AuthorizedGrantType
-import org.scriptonbasestar.auth.oauth2.endpoints.CallContext
+import org.scriptonbasestar.auth.oauth2.types.AuthorizedGrantType
+import org.scriptonbasestar.auth.oauth2.context.CallContext
 import org.scriptonbasestar.auth.oauth2.exceptions.InvalidClientException
 import org.scriptonbasestar.auth.oauth2.exceptions.InvalidGrantException
 import org.scriptonbasestar.auth.oauth2.exceptions.InvalidRequestException

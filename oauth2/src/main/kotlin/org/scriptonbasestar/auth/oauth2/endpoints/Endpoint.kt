@@ -7,7 +7,4 @@ interface Endpoint {
     val protocol: String
     val rootUrl: String
     val path: String
-
-    fun isMatch(requestPath: String): Boolean
-    fun process(callContext: CallContext, cb: () -> Unit)
 }
