@@ -1,10 +1,12 @@
 package org.scriptonbasestar.auth.oauth2.endpoints
 
+import org.scriptonbasestar.auth.http.HttpMethod
+
 class WellKnownEndpoint(
-    override val url: String,
-    override val protocol: String,
-    override val host: String,
-    override val path: String
+    override val method: Set<HttpMethod> = setOf(HttpMethod.GET),
+    override val protocol: String = "https",
+    override val rootUrl: String,
+    override val path: String = EndpointConstants.WELL_KNOWN_PATH,
 ) : Endpoint {
     override fun isMatch(requestPath: String): Boolean {
         TODO("Not yet implemented")
