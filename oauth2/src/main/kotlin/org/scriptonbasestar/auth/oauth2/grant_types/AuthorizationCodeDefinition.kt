@@ -1,7 +1,7 @@
 package org.scriptonbasestar.auth.oauth2.grant_types
 
 import org.scriptonbasestar.auth.http.HttpMethod
-import org.scriptonbasestar.auth.oauth2.context.CallContext
+import org.scriptonbasestar.auth.oauth2.context.CallContextIn
 import org.scriptonbasestar.auth.oauth2.constants.EndpointConstants
 import org.scriptonbasestar.auth.oauth2.types.OAuth2GrantType
 import org.scriptonbasestar.auth.oauth2.types.OAuth2ResponseType
@@ -9,8 +9,6 @@ import org.scriptonbasestar.validation.Validation
 import org.scriptonbasestar.validation.constraint.*
 
 object AuthorizationCodeDefinition {
-
-    val INVALID_REQUEST_FIELD_MESSAGE = "'%s' field is missing"
 
     /**
      * client_id
@@ -33,21 +31,21 @@ object AuthorizationCodeDefinition {
         val state: String?,
     )
 
-    val commonAuthorizeRequest = Validation<CallContext> {
-        CallContext::path required {
+    val commonAuthorizeRequest = Validation<CallContextIn> {
+        CallContextIn::path required {
             notBlank()
             pattern("""https://[a-zA-Z0-9-.]+/oauth/authorize""")
         }
-        CallContext::method required {
+        CallContextIn::method required {
             enum(HttpMethod.GET)
         }
-        CallContext::headers required {
+        CallContextIn::headers required {
             hasKeyValue("Content-Type", """application/json?.+""".toRegex())
         }
-        CallContext::formParameters required {
+        CallContextIn::formParameters required {
 //            hasKey("")
         }
-        CallContext::queryParameters required {
+        CallContextIn::queryParameters required {
             hasKey("client_id")
             hasKey("scope")
             hasKeyValue("response_type", "code")
@@ -79,20 +77,20 @@ object AuthorizationCodeDefinition {
         val codeChallengeMethod: String,
     )
 
-    val mobileAuthorizeRequest = Validation<CallContext> {
-        CallContext::path required {
+    val mobileAuthorizeRequest = Validation<CallContextIn> {
+        CallContextIn::path required {
             notBlank()
             pattern("""https://[a-zA-Z0-9-.]+/oauth/authorize""")
         }
-        CallContext::method required {
+        CallContextIn::method required {
             enum(HttpMethod.GET)
         }
-        CallContext::headers required {
+        CallContextIn::headers required {
             hasKeyValue("Content-Type", """application/json?.+""".toRegex())
         }
-        CallContext::formParameters required {
+        CallContextIn::formParameters required {
         }
-        CallContext::queryParameters required {
+        CallContextIn::queryParameters required {
             hasKey("client_id")
             hasKeyValue("response_type", "code")
             hasKey("redirect_uri")
@@ -135,18 +133,18 @@ object AuthorizationCodeDefinition {
         val grantType: OAuth2GrantType = OAuth2GrantType.AUTHORIZATION_CODE,
     )
 
-    val accessTokenRequest = Validation<CallContext> {
-        CallContext::path required {
+    val accessTokenRequest = Validation<CallContextIn> {
+        CallContextIn::path required {
             notBlank()
             pattern("""https://[a-zA-Z0-9-.]+/oauth/token""")
         }
-        CallContext::method required {
+        CallContextIn::method required {
             enum(HttpMethod.POST)
         }
-        CallContext::headers required {
+        CallContextIn::headers required {
             hasKeyValue("Content-Type", "application/x-www-form-urlencoded")
         }
-        CallContext::formParameters required {
+        CallContextIn::formParameters required {
             hasKeyValueNotBlank("client_id")
             hasKey("client_secret")
             hasKey("redirect_uri")
@@ -154,7 +152,7 @@ object AuthorizationCodeDefinition {
             hasKey("code_verifier")
             hasKeyValue("grant_type", "authorization_code")
         }
-        CallContext::queryParameters required {
+        CallContextIn::queryParameters required {
             maxItems(1)
         }
     }

@@ -1,7 +1,6 @@
 package org.scriptonbasestar.auth.oauth2.endpoints
 
 import org.scriptonbasestar.auth.http.HttpMethod
-import org.scriptonbasestar.auth.oauth2.endpoints.Endpoint
 import org.scriptonbasestar.auth.oauth2.constants.EndpointConstants
 
 class RefreshEndpoint(

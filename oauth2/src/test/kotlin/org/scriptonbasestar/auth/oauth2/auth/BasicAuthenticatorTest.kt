@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.scriptonbasestar.auth.http.Headers
 import org.scriptonbasestar.auth.oauth2.authentication.BasicAuthenticator
-import org.scriptonbasestar.auth.oauth2.context.CallContext
+import org.scriptonbasestar.auth.oauth2.context.CallContextIn
 import java.util.*
 
 internal class BasicAuthenticatorTest {
@@ -26,7 +26,7 @@ internal class BasicAuthenticatorTest {
     }
 
     private fun `test authorization head is case insensitive with input`(authorizationKeyName: String) {
-        val callContext = mockk<CallContext>()
+        val callContext = mockk<CallContextIn>()
         val username = "test"
         val password = "test-password"
 

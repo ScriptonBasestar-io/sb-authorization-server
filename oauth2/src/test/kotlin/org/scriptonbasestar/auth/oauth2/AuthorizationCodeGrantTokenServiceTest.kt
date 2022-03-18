@@ -8,14 +8,12 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.scriptonbasestar.auth.oauth2.types.AuthorizedGrantType
-import org.scriptonbasestar.auth.oauth2.context.CallContext
+import org.scriptonbasestar.auth.oauth2.context.CallContextIn
 import org.scriptonbasestar.auth.oauth2.exceptions.InvalidClientException
 import org.scriptonbasestar.auth.oauth2.exceptions.InvalidGrantException
 import org.scriptonbasestar.auth.oauth2.exceptions.InvalidRequestException
-import org.scriptonbasestar.auth.oauth2.grant_types.GrantingCall
-import org.scriptonbasestar.auth.oauth2.grant_types.authorization_code.AuthorizationCodeRequest
-import org.scriptonbasestar.auth.oauth2.grant_types.authorize
+import org.scriptonbasestar.auth.oauth2.grant_types.CallRouterAuthorize
+import org.scriptonbasestar.auth.oauth2.grant_types.authorization_code.AuthorizationCodeGrantRequest
 import org.scriptonbasestar.auth.oauth2.model.Client
 import org.scriptonbasestar.auth.oauth2.model.ClientService
 import org.scriptonbasestar.auth.oauth2.model.Identity
@@ -25,12 +23,13 @@ import org.scriptonbasestar.auth.oauth2.model.token.converter.AccessTokenConvert
 import org.scriptonbasestar.auth.oauth2.model.token.converter.CodeTokenConverter
 import org.scriptonbasestar.auth.oauth2.model.token.converter.Converters
 import org.scriptonbasestar.auth.oauth2.model.token.converter.RefreshTokenConverter
+import org.scriptonbasestar.auth.oauth2.types.OAuth2GrantType
 import java.time.Instant
 
 @ExtendWith(MockKExtension::class)
 internal class AuthorizationCodeGrantTokenServiceTest {
     @MockK
-    lateinit var callContext: CallContext
+    lateinit var callContext: CallContextIn
 
     @MockK
     lateinit var identityService: IdentityService
@@ -50,25 +49,18 @@ internal class AuthorizationCodeGrantTokenServiceTest {
     @MockK
     lateinit var codeTokenConverter: CodeTokenConverter
 
-    @MockK
-    lateinit var accessTokenResponder: AccessTokenResponder
-
-    lateinit var grantingCall: GrantingCall
+    lateinit var callRouterAuthorize: CallRouterAuthorize
 
     @BeforeEach
-    fun initialize() {
-        grantingCall = object : GrantingCall {
-            override val callContext = this@AuthorizationCodeGrantTokenServiceTest.callContext
-            override val identityService = this@AuthorizationCodeGrantTokenServiceTest.identityService
-            override val clientService = this@AuthorizationCodeGrantTokenServiceTest.clientService
-            override val tokenStore = this@AuthorizationCodeGrantTokenServiceTest.tokenStore
-            override val converters = Converters(
-                this@AuthorizationCodeGrantTokenServiceTest.accessTokenConverter,
-                this@AuthorizationCodeGrantTokenServiceTest.refreshTokenConverter,
-                this@AuthorizationCodeGrantTokenServiceTest.codeTokenConverter
-            )
-            override val accessTokenResponder = this@AuthorizationCodeGrantTokenServiceTest.accessTokenResponder
-        }
+    fun before() {
+        callRouterAuthorize = CallRouterAuthorize(
+            clientService,
+            identityService,
+            Converters(
+                accessTokenConverter, refreshTokenConverter, codeTokenConverter
+            ),
+            tokenStore
+        )
     }
 
     val clientId = "client-foo"
@@ -78,7 +70,7 @@ internal class AuthorizationCodeGrantTokenServiceTest {
     val username = "user-foo"
     val identity = Identity(username)
 
-    val authorizationCodeRequest = AuthorizationCodeRequest(
+    val authorizationCodeRequest = AuthorizationCodeGrantRequest(
         clientId,
         clientSecret,
         code,
@@ -89,12 +81,12 @@ internal class AuthorizationCodeGrantTokenServiceTest {
     fun validAuthorizationCodeGrant() {
         val requestScopes = setOf("scope1")
 
-        val client = Client(clientId, setOf("scope1", "scope2"), setOf(), setOf(AuthorizedGrantType.AUTHORIZATION_CODE))
+        val client = Client(clientId, setOf("scope1", "scope2"), setOf(), setOf(OAuth2GrantType.AUTHORIZATION_CODE))
         val identity = Identity(username)
         val codeToken = CodeToken(code, Instant.now(), identity, clientId, redirectUri, requestScopes)
 
         val refreshToken = RefreshToken("test", Instant.now(), identity, clientId, requestScopes)
-        val accessToken = AccessToken("test", "bearer", Instant.now(), identity, clientId, requestScopes, refreshToken)
+        val accessToken = TokenResponseToken("test", "bearer", Instant.now(), identity, clientId, requestScopes, refreshToken)
 
         every { clientService.clientOf(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns true
@@ -110,7 +102,7 @@ internal class AuthorizationCodeGrantTokenServiceTest {
             )
         } returns accessToken
 
-        grantingCall.authorize(authorizationCodeRequest)
+        callRouterAuthorize.authorize(authorizationCodeRequest)
     }
 
     @Test
@@ -119,54 +111,54 @@ internal class AuthorizationCodeGrantTokenServiceTest {
 
         assertThrows(
             InvalidClientException::class.java
-        ) { grantingCall.authorize(authorizationCodeRequest) }
+        ) { callRouterAuthorize.authorize(authorizationCodeRequest) }
     }
 
     @Test
     fun invalidClientException() {
-        val client = Client(clientId, setOf(), setOf(), setOf(AuthorizedGrantType.AUTHORIZATION_CODE))
+        val client = Client(clientId, setOf(), setOf(), setOf(OAuth2GrantType.AUTHORIZATION_CODE))
         every { clientService.clientOf(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns false
 
         assertThrows(
             InvalidClientException::class.java
-        ) { grantingCall.authorize(authorizationCodeRequest) }
+        ) { callRouterAuthorize.authorize(authorizationCodeRequest) }
     }
 
     @Test
     fun missingCodeException() {
-        val authorizationCodeRequest = AuthorizationCodeRequest(
+        val authorizationCodeRequest = AuthorizationCodeGrantRequest(
             clientId,
             clientSecret,
             null,
             redirectUri
         )
 
-        val client = Client(clientId, setOf(), setOf(), setOf(AuthorizedGrantType.AUTHORIZATION_CODE))
+        val client = Client(clientId, setOf(), setOf(), setOf(OAuth2GrantType.AUTHORIZATION_CODE))
         every { clientService.clientOf(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns true
 
         assertThrows(
             InvalidRequestException::class.java
-        ) { grantingCall.authorize(authorizationCodeRequest) }
+        ) { callRouterAuthorize.authorize(authorizationCodeRequest) }
     }
 
     @Test
     fun missingRedirectUriException() {
-        val authorizationCodeRequest = AuthorizationCodeRequest(
+        val authorizationCodeRequest = AuthorizationCodeGrantRequest(
             clientId,
             clientSecret,
             code,
             null
         )
 
-        val client = Client(clientId, setOf(), setOf(), setOf(AuthorizedGrantType.AUTHORIZATION_CODE))
+        val client = Client(clientId, setOf(), setOf(), setOf(OAuth2GrantType.AUTHORIZATION_CODE))
         every { clientService.clientOf(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns true
 
         assertThrows(
             InvalidRequestException::class.java
-        ) { grantingCall.authorize(authorizationCodeRequest) }
+        ) { callRouterAuthorize.authorize(authorizationCodeRequest) }
     }
 
     @Test
@@ -174,11 +166,11 @@ internal class AuthorizationCodeGrantTokenServiceTest {
         val wrongRedirectUri = ""
         val requestScopes = setOf("scope1")
 
-        val client = Client(clientId, setOf("scope1", "scope2"), setOf(), setOf(AuthorizedGrantType.AUTHORIZATION_CODE))
+        val client = Client(clientId, setOf("scope1", "scope2"), setOf(), setOf(OAuth2GrantType.AUTHORIZATION_CODE))
         val codeToken = CodeToken(code, Instant.now(), identity, clientId, wrongRedirectUri, requestScopes)
 
         val refreshToken = RefreshToken("test", Instant.now(), identity, clientId, requestScopes)
-        val accessToken = AccessToken("test", "bearer", Instant.now(), identity, clientId, requestScopes, refreshToken)
+        val accessToken = TokenResponseToken("test", "bearer", Instant.now(), identity, clientId, requestScopes, refreshToken)
 
         every { clientService.clientOf(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns true
@@ -195,12 +187,12 @@ internal class AuthorizationCodeGrantTokenServiceTest {
 
         assertThrows(
             InvalidGrantException::class.java
-        ) { grantingCall.authorize(authorizationCodeRequest) }
+        ) { callRouterAuthorize.authorize(authorizationCodeRequest) }
     }
 
     @Test
     fun invalidCodeException() {
-        val client = Client(clientId, setOf("scope1", "scope2"), setOf(), setOf(AuthorizedGrantType.AUTHORIZATION_CODE))
+        val client = Client(clientId, setOf("scope1", "scope2"), setOf(), setOf(OAuth2GrantType.AUTHORIZATION_CODE))
 
         every { clientService.clientOf(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns true
@@ -208,6 +200,6 @@ internal class AuthorizationCodeGrantTokenServiceTest {
 
         assertThrows(
             InvalidGrantException::class.java
-        ) { grantingCall.authorize(authorizationCodeRequest) }
+        ) { callRouterAuthorize.authorize(authorizationCodeRequest) }
     }
 }

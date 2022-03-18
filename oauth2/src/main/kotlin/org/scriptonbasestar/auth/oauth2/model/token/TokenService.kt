@@ -1,9 +1,9 @@
 package org.scriptonbasestar.auth.oauth2.model.token
 
 interface TokenService {
-    fun storeAccessToken(accessToken: AccessToken)
+    fun storeAccessToken(accessToken: TokenResponseToken)
 
-    fun accessToken(token: String): AccessToken?
+    fun accessToken(token: String): TokenResponseToken?
 
     fun revokeAccessToken(token: String)
 

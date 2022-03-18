@@ -1,4 +1,4 @@
-package org.scriptonbasestar.auth.oauth2.grant_types.password_credentials
+package org.scriptonbasestar.auth.oauth2.grant_types.password
 
 import org.scriptonbasestar.auth.oauth2.types.OAuth2GrantType
 
