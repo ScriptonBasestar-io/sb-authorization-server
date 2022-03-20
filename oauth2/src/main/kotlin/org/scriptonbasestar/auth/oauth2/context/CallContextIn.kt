@@ -2,9 +2,11 @@ package org.scriptonbasestar.auth.oauth2.context
 
 import org.scriptonbasestar.auth.http.Headers
 import org.scriptonbasestar.auth.http.HttpMethod
+import org.scriptonbasestar.auth.http.HttpProto
 import org.scriptonbasestar.auth.http.Params
 
 interface CallContextIn {
+//    val protocol: HttpProto
     val path: String
     val method: HttpMethod
     val headers: Headers

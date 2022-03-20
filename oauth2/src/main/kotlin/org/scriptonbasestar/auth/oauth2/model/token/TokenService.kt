@@ -14,6 +14,9 @@ interface TokenService {
 
     fun codeToken(token: String): CodeToken?
 
+    fun redirectCodeSave(redirectCode: RedirectCodeResponse)
+
+    fun redirectCodeLoad(code: String): RedirectCodeResponse?
     /**
      * Retrieve token and delete it from store
      */

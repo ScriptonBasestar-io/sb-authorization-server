@@ -18,6 +18,3 @@ object EndpointConstants {
     const val CLIENT_REGISTRATION_PATH = "/connect/register"
     const val USERINFO_PATH = "/userinfo"
 }
-
-fun ValidationBuilderBase<Map<String, String>>.hint(hint: String): Constraint<Map<String, String>> =
-    Constraint(hint, this.test).also { constraints.remove(this); constraints.add(it) }

@@ -1,6 +1,5 @@
 package org.scriptonbasestar.auth.oauth2.grant_types.implicit
 
-import org.scriptonbasestar.auth.oauth2.grant_types.ClientRequest
 import org.scriptonbasestar.auth.oauth2.types.OAuth2GrantType
 
 @Deprecated("implicit grant is not recommended")

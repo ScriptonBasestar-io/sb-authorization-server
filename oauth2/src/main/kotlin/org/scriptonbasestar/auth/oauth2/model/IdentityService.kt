@@ -2,7 +2,7 @@ package org.scriptonbasestar.auth.oauth2.model
 
 import java.util.*
 
-interface IdentityService : Authenticator, IdentityScopeVerifier {
+interface IdentityService : IdentityScopeVerifier {
     /**
      * Find identity within a client and username
      * If not found return null
@@ -15,4 +15,5 @@ interface IdentityService : Authenticator, IdentityScopeVerifier {
 //    fun findOne(realm: Realm, userId: String): Identity
 
     fun isValidCredential(realm: Realm, credential: Credentials): Boolean
+    fun validCredentials(forClient: Client, identity: Identity, password: String): Boolean
 }

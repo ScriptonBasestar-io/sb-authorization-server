@@ -1,13 +1,19 @@
 Authorization Server
 ====================
 
-## ???
+## 대강
 
 server library for any framework
 
-flows - groovy로 돌릴 수 있으려나
+## 특
+
+* 아무 (jvm)프레임웤에나 쓸 수 있는 인증서버 라이브러리
+* pre validation(class mapping 되기전에 validation)
+* flows - groovy로 돌릴 수 있으려나? 커스텀플로우 되려나?
 
 ## REF
+
+참고 문서들. 확인 후 필요없는건 나중에 지움
 
 ### oauth server
 * https://github.com/myndocs/kotlin-oauth2-server
@@ -31,3 +37,4 @@ flows - groovy로 돌릴 수 있으려나
 
 ### protocol
 https://oauth.net/2/grant-types/authorization-code/
+https://www.oauth.com/oauth2-servers/authorization/the-authorization-request/

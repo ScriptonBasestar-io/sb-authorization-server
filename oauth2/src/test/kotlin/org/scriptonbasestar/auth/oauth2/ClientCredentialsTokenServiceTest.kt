@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.scriptonbasestar.auth.oauth2.context.CallContextIn
 import org.scriptonbasestar.auth.oauth2.exceptions.InvalidClientException
-import org.scriptonbasestar.auth.oauth2.grant_types.ClientCredentialsRequest
 import org.scriptonbasestar.auth.oauth2.model.Client
 import org.scriptonbasestar.auth.oauth2.model.ClientService
 import org.scriptonbasestar.auth.oauth2.model.IdentityService
