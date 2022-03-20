@@ -1,9 +1,12 @@
 package org.scriptonbasestar.auth.oauth2.model.token
 
+/**
+ * temporal data
+ */
 interface TokenService {
-    fun storeAccessToken(accessToken: TokenResponseToken)
+    fun saveAccessToken(accessToken: AccessToken)
 
-    fun accessToken(token: String): TokenResponseToken?
+    fun accessToken(token: String): AccessToken?
 
     fun revokeAccessToken(token: String)
 

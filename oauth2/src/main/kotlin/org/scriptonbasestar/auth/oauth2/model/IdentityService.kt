@@ -7,7 +7,7 @@ interface IdentityService : Authenticator, IdentityScopeVerifier {
      * Find identity within a client and username
      * If not found return null
      */
-    fun identityOf(forClient: Client, username: String): Identity?
+    fun identityOf(forClient: Client, username: String): Optional<Identity>
 
     // 회원관리는 다른모듈에서
 //    fun findAll(realm: Realm): List<Identity>

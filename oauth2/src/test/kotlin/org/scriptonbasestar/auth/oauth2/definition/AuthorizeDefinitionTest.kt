@@ -7,7 +7,7 @@ import org.scriptonbasestar.auth.http.Headers
 import org.scriptonbasestar.auth.http.HttpMethod
 import org.scriptonbasestar.auth.http.Params
 import org.scriptonbasestar.auth.oauth2.CallContextImpl
-import org.scriptonbasestar.auth.oauth2.grant_types.AuthorizationCodeDefinition
+import org.scriptonbasestar.auth.oauth2.grant_types.authorization_code.AuthorizationCodeGrantDefinition
 import kotlin.test.Test
 
 /**
@@ -39,7 +39,7 @@ class AuthorizeDefinitionTest {
             ),
             formParameters = Params()
         )
-        val result = AuthorizationCodeDefinition.commonAuthorizeRequest.validate(callContext)
+        val result = AuthorizationCodeGrantDefinition.commonAuthorizeRequestValidation.validate(callContext)
         println(result)
         Assertions.assertTrue(result.errors.isEmpty())
     }
@@ -67,7 +67,7 @@ class AuthorizeDefinitionTest {
             ),
             formParameters = Params()
         )
-        val result = AuthorizationCodeDefinition.commonAuthorizeRequest.validate(callContext)
+        val result = AuthorizationCodeGrantDefinition.commonAuthorizeRequestValidation.validate(callContext)
         println(result)
         Assertions.assertTrue(result.errors.isEmpty())
     }
@@ -94,7 +94,7 @@ class AuthorizeDefinitionTest {
             ),
             queryParameters = Params(),
         )
-        val result = AuthorizationCodeDefinition.accessTokenRequest.validate(callContext)
+        val result = AuthorizationCodeGrantDefinition.accessTokenRequestValidation.validate(callContext)
         println(result)
         Assertions.assertTrue(result.errors.isEmpty())
     }

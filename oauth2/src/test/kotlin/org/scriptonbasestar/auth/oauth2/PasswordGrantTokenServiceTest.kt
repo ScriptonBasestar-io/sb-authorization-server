@@ -13,13 +13,11 @@ import org.scriptonbasestar.auth.oauth2.context.CallContextIn
 import org.scriptonbasestar.auth.oauth2.exceptions.InvalidClientException
 import org.scriptonbasestar.auth.oauth2.exceptions.InvalidIdentityException
 import org.scriptonbasestar.auth.oauth2.exceptions.InvalidScopeException
-import org.scriptonbasestar.auth.oauth2.grant_types.CallRouterAuthorize
-import org.scriptonbasestar.auth.oauth2.grant_types.password.PasswordGrantRequest
 import org.scriptonbasestar.auth.oauth2.model.Client
 import org.scriptonbasestar.auth.oauth2.model.ClientService
 import org.scriptonbasestar.auth.oauth2.model.Identity
 import org.scriptonbasestar.auth.oauth2.model.IdentityService
-import org.scriptonbasestar.auth.oauth2.model.token.TokenResponseToken
+import org.scriptonbasestar.auth.oauth2.model.token.AccessToken
 import org.scriptonbasestar.auth.oauth2.model.token.RefreshToken
 import org.scriptonbasestar.auth.oauth2.model.token.TokenService
 import org.scriptonbasestar.auth.oauth2.model.token.converter.AccessTokenConverter
@@ -51,9 +49,6 @@ internal class PasswordGrantTokenServiceTest {
 
     @MockK
     lateinit var codeTokenConverter: CodeTokenConverter
-
-    @MockK
-    lateinit var accessTokenResponder: AccessTokenResponder
 
     lateinit var callRouterAuthorize: CallRouterAuthorize
 
@@ -90,9 +85,9 @@ internal class PasswordGrantTokenServiceTest {
         val identity = Identity(username)
         val requestScopes = setOf("scope1")
         val refreshToken = RefreshToken("test", Instant.now(), identity, clientId, requestScopes)
-        val accessToken = TokenResponseToken("test", "bearer", Instant.now(), identity, clientId, requestScopes, refreshToken)
+        val accessToken = AccessToken("test", "bearer", Instant.now(), identity, clientId, requestScopes, refreshToken)
 
-        every { clientService.clientOf(clientId) } returns client
+        every { clientService.findByClientId(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns true
         every { identityService.identityOf(client, username) } returns identity
         every { identityService.validCredentials(client, identity, password) } returns true
@@ -109,12 +104,12 @@ internal class PasswordGrantTokenServiceTest {
 
         callRouterAuthorize.authorize(passwordGrantRequest)
 
-        verify { tokenStore.storeAccessToken(accessToken) }
+        verify { tokenStore.saveAccessToken(accessToken) }
     }
 
     @Test
     fun nonExistingClientException() {
-        every { clientService.clientOf(clientId) } returns null
+        every { clientService.findByClientId(clientId) } returns null
 
         assertThrows(
             InvalidClientException::class.java
@@ -124,7 +119,7 @@ internal class PasswordGrantTokenServiceTest {
     @Test
     fun invalidClientException() {
         val client = Client(clientId, setOf(), setOf(), setOf(OAuth2GrantType.PASSWORD))
-        every { clientService.clientOf(clientId) } returns client
+        every { clientService.findByClientId(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns false
 
         assertThrows(
@@ -175,7 +170,7 @@ internal class PasswordGrantTokenServiceTest {
         val client = Client(clientId, setOf(), setOf(), setOf(OAuth2GrantType.PASSWORD))
         val identity = Identity(username)
 
-        every { clientService.clientOf(clientId) } returns client
+        every { clientService.findByClientId(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns true
         every { identityService.identityOf(client, username) } returns identity
         every { identityService.validCredentials(client, identity, password) } returns false
@@ -190,7 +185,7 @@ internal class PasswordGrantTokenServiceTest {
         val client = Client(clientId, setOf("scope1", "scope2"), setOf(), setOf(OAuth2GrantType.PASSWORD))
         val identity = Identity(username)
 
-        every { clientService.clientOf(clientId) } returns client
+        every { clientService.findByClientId(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns true
         every { identityService.identityOf(client, username) } returns identity
         every { identityService.validCredentials(client, identity, password) } returns true
@@ -206,7 +201,7 @@ internal class PasswordGrantTokenServiceTest {
         val client = Client(clientId, setOf("scope3"), setOf(), setOf(OAuth2GrantType.PASSWORD))
         val identity = Identity(username)
 
-        every { clientService.clientOf(clientId) } returns client
+        every { clientService.findByClientId(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns true
         every { identityService.identityOf(client, username) } returns identity
         every { identityService.validCredentials(client, identity, password) } returns true
@@ -231,9 +226,9 @@ internal class PasswordGrantTokenServiceTest {
         val identity = Identity(username)
         val requestScopes = setOf("scope1", "scope2")
         val refreshToken = RefreshToken("test", Instant.now(), identity, clientId, requestScopes)
-        val accessToken = TokenResponseToken("test", "bearer", Instant.now(), identity, clientId, requestScopes, refreshToken)
+        val accessToken = AccessToken("test", "bearer", Instant.now(), identity, clientId, requestScopes, refreshToken)
 
-        every { clientService.clientOf(clientId) } returns client
+        every { clientService.findByClientId(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns true
         every { identityService.identityOf(client, username) } returns identity
         every { identityService.validCredentials(client, identity, password) } returns true

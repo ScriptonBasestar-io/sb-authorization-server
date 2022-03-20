@@ -11,12 +11,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.scriptonbasestar.auth.oauth2.context.CallContextIn
 import org.scriptonbasestar.auth.oauth2.exceptions.InvalidClientException
-import org.scriptonbasestar.auth.oauth2.grant_types.CallRouterAuthorize
 import org.scriptonbasestar.auth.oauth2.grant_types.ClientCredentialsRequest
 import org.scriptonbasestar.auth.oauth2.model.Client
 import org.scriptonbasestar.auth.oauth2.model.ClientService
 import org.scriptonbasestar.auth.oauth2.model.IdentityService
-import org.scriptonbasestar.auth.oauth2.model.token.TokenResponseToken
+import org.scriptonbasestar.auth.oauth2.model.token.AccessToken
 import org.scriptonbasestar.auth.oauth2.model.token.RefreshToken
 import org.scriptonbasestar.auth.oauth2.model.token.TokenService
 import org.scriptonbasestar.auth.oauth2.model.token.converter.AccessTokenConverter
@@ -49,9 +48,6 @@ internal class ClientCredentialsTokenServiceTest {
     @MockK
     lateinit var codeTokenConverter: CodeTokenConverter
 
-    @MockK
-    lateinit var accessTokenResponder: AccessTokenResponder
-
     lateinit var callRouterAuthorize: CallRouterAuthorize
 
     @BeforeEach
@@ -76,21 +72,21 @@ internal class ClientCredentialsTokenServiceTest {
     fun validClientCredentialsGrant() {
         val client = Client(clientId, emptySet(), emptySet(), setOf(OAuth2GrantType.CLIENT_CREDENTIALS))
         val refreshToken = RefreshToken("test", Instant.now(), null, clientId, scopes)
-        val accessToken = TokenResponseToken("test", "bearer", Instant.now(), null, clientId, scopes, refreshToken)
+        val accessToken = AccessToken("test", "bearer", Instant.now(), null, clientId, scopes, refreshToken)
 
-        every { clientService.clientOf(clientId) } returns client
+        every { clientService.findByClientId(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns true
         every { refreshTokenConverter.convertToToken(null, clientId, scopes) } returns refreshToken
         every { accessTokenConverter.convertToToken(null, clientId, scopes, refreshToken) } returns accessToken
 
         callRouterAuthorize.authorize(clientCredentialsRequest)
 
-        verify { tokenStore.storeAccessToken(accessToken) }
+        verify { tokenStore.saveAccessToken(accessToken) }
     }
 
     @Test
     fun nonExistingClientException() {
-        every { clientService.clientOf(clientId) } returns null
+        every { clientService.findByClientId(clientId) } returns null
 
         Assertions.assertThrows(
             InvalidClientException::class.java
@@ -100,7 +96,7 @@ internal class ClientCredentialsTokenServiceTest {
     @Test
     fun invalidClientException() {
         val client = Client(clientId, emptySet(), emptySet(), setOf(OAuth2GrantType.CLIENT_CREDENTIALS))
-        every { clientService.clientOf(clientId) } returns client
+        every { clientService.findByClientId(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns false
 
         Assertions.assertThrows(
@@ -119,9 +115,9 @@ internal class ClientCredentialsTokenServiceTest {
         val client = Client(clientId, setOf("scope1", "scope2"), setOf(), setOf(OAuth2GrantType.CLIENT_CREDENTIALS))
         val requestScopes = setOf("scope1", "scope2")
         val refreshToken = RefreshToken("test", Instant.now(), null, clientId, requestScopes)
-        val accessToken = TokenResponseToken("test", "bearer", Instant.now(), null, clientId, requestScopes, refreshToken)
+        val accessToken = AccessToken("test", "bearer", Instant.now(), null, clientId, requestScopes, refreshToken)
 
-        every { clientService.clientOf(clientId) } returns client
+        every { clientService.findByClientId(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns true
         every { refreshTokenConverter.convertToToken(null, clientId, requestScopes) } returns refreshToken
         every { accessTokenConverter.convertToToken(null, clientId, requestScopes, refreshToken) } returns accessToken

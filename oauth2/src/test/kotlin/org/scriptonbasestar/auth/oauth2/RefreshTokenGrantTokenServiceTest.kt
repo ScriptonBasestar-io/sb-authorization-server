@@ -12,13 +12,11 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.scriptonbasestar.auth.oauth2.context.CallContextIn
 import org.scriptonbasestar.auth.oauth2.exceptions.InvalidClientException
 import org.scriptonbasestar.auth.oauth2.exceptions.InvalidGrantException
-import org.scriptonbasestar.auth.oauth2.grant_types.CallRouterRefresh
-import org.scriptonbasestar.auth.oauth2.grant_types.refresh_token.RefreshTokenRequest
 import org.scriptonbasestar.auth.oauth2.model.Client
 import org.scriptonbasestar.auth.oauth2.model.ClientService
 import org.scriptonbasestar.auth.oauth2.model.Identity
 import org.scriptonbasestar.auth.oauth2.model.IdentityService
-import org.scriptonbasestar.auth.oauth2.model.token.TokenResponseToken
+import org.scriptonbasestar.auth.oauth2.model.token.AccessToken
 import org.scriptonbasestar.auth.oauth2.model.token.RefreshToken
 import org.scriptonbasestar.auth.oauth2.model.token.TokenService
 import org.scriptonbasestar.auth.oauth2.model.token.converter.AccessTokenConverter
@@ -50,9 +48,6 @@ internal class RefreshTokenGrantTokenServiceTest {
 
     @MockK
     lateinit var codeTokenConverter: CodeTokenConverter
-
-    @MockK
-    lateinit var accessTokenResponder: AccessTokenResponder
 
     lateinit var callRouterRefresh: CallRouterRefresh
 
@@ -87,10 +82,10 @@ internal class RefreshTokenGrantTokenServiceTest {
         val client = Client(clientId, setOf("scope1", "scope2"), setOf(), setOf(OAuth2GrantType.REFRESH_TOKEN))
         val token = RefreshToken("test", Instant.now(), identity, clientId, scopes)
         val newRefreshToken = RefreshToken("new-test", Instant.now(), identity, clientId, scopes)
-        val accessToken = TokenResponseToken("test", "bearer", Instant.now(), identity, clientId, scopes, newRefreshToken)
+        val accessToken = AccessToken("test", "bearer", Instant.now(), identity, clientId, scopes, newRefreshToken)
         val identity = Identity(username)
 
-        every { clientService.clientOf(clientId) } returns client
+        every { clientService.findByClientId(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns true
         every { tokenStore.refreshToken(refreshToken) } returns token
         every { identityService.identityOf(client, username) } returns identity
@@ -99,7 +94,7 @@ internal class RefreshTokenGrantTokenServiceTest {
 
         callRouterRefresh.refresh(refreshTokenRequest)
 
-        verify { tokenStore.storeAccessToken(accessToken) }
+        verify { tokenStore.saveAccessToken(accessToken) }
     }
 
 //    @Test
@@ -122,7 +117,7 @@ internal class RefreshTokenGrantTokenServiceTest {
 
     @Test
     fun nonExistingClientException() {
-        every { clientService.clientOf(clientId) } returns null
+        every { clientService.findByClientId(clientId) } returns null
 
         Assertions.assertThrows(
             InvalidClientException::class.java
@@ -132,7 +127,7 @@ internal class RefreshTokenGrantTokenServiceTest {
     @Test
     fun invalidClientException() {
         val client = Client(clientId, setOf(), setOf(), setOf(OAuth2GrantType.REFRESH_TOKEN))
-        every { clientService.clientOf(clientId) } returns client
+        every { clientService.findByClientId(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns false
 
         Assertions.assertThrows(
@@ -145,7 +140,7 @@ internal class RefreshTokenGrantTokenServiceTest {
         val client = Client(clientId, setOf("scope1", "scope2"), setOf(), setOf(OAuth2GrantType.REFRESH_TOKEN))
         val token = RefreshToken("test", Instant.now(), identity, "wrong-client", scopes)
 
-        every { clientService.clientOf(clientId) } returns client
+        every { clientService.findByClientId(clientId) } returns client
         every { clientService.validClient(client, clientSecret) } returns true
         every { tokenStore.refreshToken(refreshToken) } returns token
 
