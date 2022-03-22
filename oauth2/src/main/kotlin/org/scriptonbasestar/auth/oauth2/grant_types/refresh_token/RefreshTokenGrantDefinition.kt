@@ -10,7 +10,6 @@ import org.scriptonbasestar.auth.oauth2.grant_types.ScopeParser
 import org.scriptonbasestar.auth.oauth2.model.ClientService
 import org.scriptonbasestar.auth.oauth2.model.IdentityService
 import org.scriptonbasestar.auth.oauth2.model.token.AccessToken
-import org.scriptonbasestar.auth.oauth2.model.token.RefreshToken
 import org.scriptonbasestar.auth.oauth2.model.token.TokenService
 import org.scriptonbasestar.auth.oauth2.model.token.converter.AccessTokenConverter
 import org.scriptonbasestar.auth.oauth2.model.token.converter.RefreshTokenConverter
@@ -126,11 +125,11 @@ object RefreshTokenGrantDefinition {
     ): CallContextOut<AccessToken> {
         val validResult = refreshTokenRequestValidation.validate(callContextIn)
         if (validResult.errors.isNotEmpty()) {
-            //FIXME 메시지 출력 json
+            // FIXME 메시지 출력 json
             throw InvalidRequestException(validResult.errors.map { it.value }.joinToString(","))
         }
         // TODO valid 완료후 자동매핑
-        val refreshTokenRequest= RefreshTokenRequest(
+        val refreshTokenRequest = RefreshTokenRequest(
             path = callContextIn.path,
             method = callContextIn.method,
             clientId = callContextIn.formParameters["client_id"]!!,

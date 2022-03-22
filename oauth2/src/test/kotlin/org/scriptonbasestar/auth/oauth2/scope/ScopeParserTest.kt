@@ -28,4 +28,24 @@ internal class ScopeParserTest {
             ScopeParser.parseScopes("foo bar"),
         )
     }
+
+    @Test
+    fun setShouldBeSeparatedByPlusCharacter() {
+        Assertions.assertEquals(
+            setOf("foo", "bar"),
+            ScopeParser.parseScopes("foo+bar"),
+        )
+    }
+
+    @Test
+    fun `더하기랑 공백이랑 막 섞여있고 앞에 공백있는 개판 클라이언트도 통과시켜줘야 하는건가`() {
+        Assertions.assertEquals(
+            setOf("foo", "bar"),
+            ScopeParser.parseScopes("foo + bar"),
+        )
+        Assertions.assertEquals(
+            setOf("foo", "bar"),
+            ScopeParser.parseScopes(" foo + bar"),
+        )
+    }
 }

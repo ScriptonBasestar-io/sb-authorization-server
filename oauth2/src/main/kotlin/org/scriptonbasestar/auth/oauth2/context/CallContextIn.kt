@@ -6,7 +6,7 @@ import org.scriptonbasestar.auth.http.HttpProto
 import org.scriptonbasestar.auth.http.Params
 
 interface CallContextIn {
-//    val protocol: HttpProto
+    val protocol: HttpProto
     val path: String
     val method: HttpMethod
     val headers: Headers

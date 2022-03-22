@@ -1,7 +1,7 @@
 package org.scriptonbasestar.auth.oauth2.grant_types
 
 object ScopeParser {
-    private const val SCOPE_SEPARATOR = " "
+    private val SCOPE_SEPARATOR = "[ +]+".toRegex()
 
     fun parseScopes(scopes: String?): Set<String> =
         if (!scopes.isNullOrBlank())

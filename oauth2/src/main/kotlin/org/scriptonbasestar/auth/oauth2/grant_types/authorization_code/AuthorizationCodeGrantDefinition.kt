@@ -25,14 +25,6 @@ import org.scriptonbasestar.validation.constraint.*
 
 object AuthorizationCodeGrantDefinition {
 
-    data class RedirectRequest(
-        val clientId: String,
-        val redirectUri: String,
-        val scope: String,
-        val state: String,
-        val responseType: OAuth2ResponseType,
-    )
-
     val redirectRequestValidation = Validation<CallContextIn> {
         CallContextIn::path required {
             startsWith(EndpointConstants.AUTHORIZATION_PATH)
@@ -59,6 +51,14 @@ object AuthorizationCodeGrantDefinition {
         }
     }
 
+    data class RedirectRequest(
+        val clientId: String,
+        val redirectUri: String,
+        val scope: String,
+        val state: String,
+        val responseType: OAuth2ResponseType,
+    )
+
     fun redirectProcess(
         redirectRequest: RedirectRequest,
         clientService: ClientService,
@@ -75,7 +75,7 @@ object AuthorizationCodeGrantDefinition {
             throw InvalidRequestException(ErrorMessage.INVALID_REQUEST_FIELD_MESSAGE.format("redirect_uri"))
         }
         // FIXME contains, startswith 도 추가필요
-        if(!requestedClient.redirectUris.contains(redirectRequest.redirectUri)){
+        if (!requestedClient.redirectUris.contains(redirectRequest.redirectUri)) {
             throw InvalidRequestException("redirect_uri you requested is not registered")
         }
 
@@ -85,7 +85,7 @@ object AuthorizationCodeGrantDefinition {
             requestedClient.clientScopes
         }
 
-        val code = redirectCodeConverter.convertToToken(requestedClient.clientId, requestedScopes)
+        val code = redirectCodeConverter.convertToToken(requestedClient.clientId, requestedScopes, redirectRequest.redirectUri)
 
         tokenService.redirectCodeSave(code)
         return code
@@ -99,7 +99,7 @@ object AuthorizationCodeGrantDefinition {
     ): CallContextOut<String> {
         val validResult = redirectRequestValidation(callContextIn)
         if (validResult.errors.isNotEmpty()) {
-            //FIXME 메시지 출력 json
+            // FIXME 메시지 출력 json
             throw InvalidRequestException(validResult.errors.map { it.value }.joinToString(","))
         }
         // TODO valid 완료후 자동매핑
@@ -113,7 +113,7 @@ object AuthorizationCodeGrantDefinition {
         val code = redirectProcess(
             redirectRequest = redirectRequest,
             clientService = clientService,
-            redirectCodeConverter= redirectCodeConverter,
+            redirectCodeConverter = redirectCodeConverter,
             tokenService = tokenService,
         )
 
@@ -132,7 +132,6 @@ object AuthorizationCodeGrantDefinition {
             override val responseValue: String = "$${code.redirectUri}&code=${code.code}&state=${code.state}"
         }
     }
-
 
     /**
      * client_id
@@ -163,9 +162,9 @@ object AuthorizationCodeGrantDefinition {
         CallContextIn::method required {
             enum(HttpMethod.GET)
         }
-        CallContextIn::headers required {
-            hasKeyValue("Content-Type", """application/json?.+""".toRegex())
-        }
+//        CallContextIn::headers required {
+//            hasKeyValue("Content-Type", """application/json?.+""".toRegex())
+//        }
         CallContextIn::formParameters required {
 //            hasKey("")
         }
@@ -179,6 +178,7 @@ object AuthorizationCodeGrantDefinition {
     fun commonAuthorizeProcess(
         commonAuthorizeRequest: CommonAuthorizeRequest,
         clientService: ClientService,
+        identityService: IdentityService,
         codeTokenConverter: CodeTokenConverter,
         tokenService: TokenService
     ): CodeToken {
@@ -201,8 +201,12 @@ object AuthorizationCodeGrantDefinition {
             requestedClient.clientScopes
         }
 
-        //FIXME err... 여기 identity없을텐데 아닌가
-//        val requestedIdentity = Identity
+        // FIXME err... 여기 identity없을텐데 아닌가
+        val requestedIdentity = identityService.identityOf(
+            requestedClient, "username????"
+        ).orElseThrow {
+            InvalidClientException("identity 있나?")
+        }
 
 //        GrantUtil.validateScopes(requestedClient, requestedIdentity, requestedScopes, identityService)
 
@@ -222,13 +226,12 @@ object AuthorizationCodeGrantDefinition {
         callContextIn: CallContextIn,
         clientService: ClientService,
         identityService: IdentityService,
-        accessTokenConverter: AccessTokenConverter,
-        refreshTokenConverter: RefreshTokenConverter,
+        codeTokenConverter: CodeTokenConverter,
         tokenService: TokenService,
-    ): CallContextOut<AccessToken> {
+    ): CallContextOut<CodeToken> {
         val validResult = AuthorizationCodeGrantDefinition.commonAuthorizeRequestValidation(callContextIn)
         if (validResult.errors.isNotEmpty()) {
-            //FIXME 메시지 출력 json
+            // FIXME 메시지 출력 json
             throw InvalidRequestException(validResult.errors.map { it.value }.joinToString(","))
         }
         // TODO valid 완료후 자동매핑
@@ -240,16 +243,15 @@ object AuthorizationCodeGrantDefinition {
             scope = callContextIn.formParameters["scope"]!!,
             state = callContextIn.formParameters["state"]!!,
         )
-        val accessToken = AuthorizationCodeGrantDefinition.commonAuthorizeProcess(
+        val codeToken = AuthorizationCodeGrantDefinition.commonAuthorizeProcess(
             commonAuthorizeRequest = commonAuthorizeRequest,
             clientService = clientService,
             identityService = identityService,
-            accessTokenConverter = accessTokenConverter,
-            refreshTokenConverter = refreshTokenConverter,
+            codeTokenConverter = codeTokenConverter,
             tokenService = tokenService,
         )
 
-        return object : CallContextOut<AccessToken> {
+        return object : CallContextOut<CodeToken> {
             override val statusValue: Int = 200
             override val statusName: String = "200"
             override val headers: Headers = Headers(
@@ -259,7 +261,7 @@ object AuthorizationCodeGrantDefinition {
                 )
             )
             override val responseType: HttpResponseType = HttpResponseType.JSON
-            override val responseValue: AccessToken = accessToken
+            override val responseValue: CodeToken = codeToken
         }
     }
 
@@ -290,14 +292,14 @@ object AuthorizationCodeGrantDefinition {
 
     val mobileAuthorizeRequest = Validation<CallContextIn> {
         CallContextIn::path required {
-            pattern("""https://[a-zA-Z0-9-.]+/oauth/authorize""")
+            startsWith(EndpointConstants.AUTHORIZATION_PATH)
         }
         CallContextIn::method required {
             enum(HttpMethod.GET)
         }
-        CallContextIn::headers required {
-            hasKeyValue("Content-Type", """application/json?.+""".toRegex())
-        }
+//        CallContextIn::headers required {
+//            hasKeyValue("Content-Type", """application/json?.+""".toRegex())
+//        }
         CallContextIn::formParameters required {
         }
         CallContextIn::queryParameters required {
@@ -340,7 +342,7 @@ object AuthorizationCodeGrantDefinition {
 
     val accessTokenRequestValidation = Validation<CallContextIn> {
         CallContextIn::path required {
-            pattern("""https://[a-zA-Z0-9-.]+/oauth/token""")
+            startsWith(EndpointConstants.TOKEN_PATH)
         }
         CallContextIn::method required {
             enum(HttpMethod.POST)
@@ -418,7 +420,7 @@ object AuthorizationCodeGrantDefinition {
     ): CallContextOut<AccessToken> {
         val validResult = AuthorizationCodeGrantDefinition.accessTokenRequestValidation(callContextIn)
         if (validResult.errors.isNotEmpty()) {
-            //FIXME 메시지 출력 json
+            // FIXME 메시지 출력 json
             throw InvalidRequestException(validResult.errors.map { it.value }.joinToString(","))
         }
         // TODO valid 완료후 자동매핑
@@ -454,5 +456,4 @@ object AuthorizationCodeGrantDefinition {
             override val responseValue: AccessToken = accessToken
         }
     }
-
 }

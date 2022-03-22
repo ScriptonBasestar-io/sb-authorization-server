@@ -7,4 +7,4 @@ data class RedirectCodeResponse(
     val code: String,
     val state: String,
     val redirectUri: String,
-): ExpirableToken
+) : ExpirableToken

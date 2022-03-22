@@ -38,3 +38,6 @@ server library for any framework
 ### protocol
 https://oauth.net/2/grant-types/authorization-code/
 https://www.oauth.com/oauth2-servers/authorization/the-authorization-request/
+
+https://docs.microsoft.com/ko-kr/azure/active-directory/develop/single-and-multi-tenant-apps
+https://docs.microsoft.com/ko-kr/azure/active-directory/develop/howto-configure-publisher-domain

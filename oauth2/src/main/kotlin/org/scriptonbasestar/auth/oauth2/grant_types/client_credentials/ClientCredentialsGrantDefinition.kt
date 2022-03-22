@@ -96,7 +96,6 @@ object ClientCredentialsGrantDefinition {
         return accessToken
     }
 
-
     fun passwordGrantCall(
         callContextIn: CallContextIn,
         clientService: ClientService,
@@ -107,7 +106,7 @@ object ClientCredentialsGrantDefinition {
     ): CallContextOut<AccessToken> {
         val validResult = PasswordGrantDefinition.passwordRequestValidation.validate(callContextIn)
         if (validResult.errors.isNotEmpty()) {
-            //FIXME 메시지 출력 json
+            // FIXME 메시지 출력 json
             throw InvalidRequestException(validResult.errors.map { it.value }.joinToString(","))
         }
         // TODO valid 완료후 자동매핑

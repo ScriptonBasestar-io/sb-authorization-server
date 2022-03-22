@@ -11,7 +11,7 @@ class TargetFilterChain(
     }
 
     fun process(contextIn: CallContextIn) {
-        if(logger.isDebugEnabled){
+        if (logger.isDebugEnabled) {
             logger.debug("target filter >>>>>>>>>>")
             logger.debug("target filter {}", contextIn)
         }

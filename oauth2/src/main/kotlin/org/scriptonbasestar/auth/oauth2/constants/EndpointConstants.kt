@@ -1,8 +1,5 @@
 package org.scriptonbasestar.auth.oauth2.constants
 
-import org.scriptonbasestar.validation.Constraint
-import org.scriptonbasestar.validation.builder.ValidationBuilderBase
-
 object EndpointConstants {
     // oauth2
     const val AUTHORIZATION_PATH = "/oauth2/authorize"
