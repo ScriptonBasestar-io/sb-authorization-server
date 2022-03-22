@@ -13,8 +13,6 @@ import org.scriptonbasestar.auth.http.HttpMethod
 import org.scriptonbasestar.auth.http.HttpProto
 import org.scriptonbasestar.auth.http.Params
 import org.scriptonbasestar.auth.oauth2.constants.EndpointConstants
-import org.scriptonbasestar.auth.oauth2.exceptions.InvalidClientException
-import org.scriptonbasestar.auth.oauth2.exceptions.InvalidIdentityException
 import org.scriptonbasestar.auth.oauth2.grant_types.authorization_code.AuthorizationCodeGrantDefinition
 import org.scriptonbasestar.auth.oauth2.model.Client
 import org.scriptonbasestar.auth.oauth2.model.ClientService
@@ -26,8 +24,8 @@ import org.scriptonbasestar.auth.oauth2.model.token.converter.CodeTokenConverter
 import org.scriptonbasestar.auth.oauth2.model.token.converter.RedirectCodeConverter
 import org.scriptonbasestar.auth.oauth2.model.token.converter.RefreshTokenConverter
 import org.scriptonbasestar.auth.oauth2.types.OAuth2GrantType
-import org.scriptonbasestar.auth.oauth2.types.OAuth2ResponseType
 import java.time.Instant
+import java.util.*
 
 @ExtendWith(MockKExtension::class)
 internal class AuthorizationCodeGrantTokenServiceTest {
@@ -57,38 +55,31 @@ internal class AuthorizationCodeGrantTokenServiceTest {
     val code = "code-token"
     val redirectUri = "http://foo.lcoalhost"
     val username = "user-foo"
+    val password = "passw0rd"
     val state = "1235"
-    val scope = "email"
+    val scope = "scope1"
     val identity = Identity(username)
-
-    val authorizationCodeRequest = AuthorizationCodeGrantDefinition.RedirectRequest(
-        clientId,
-        redirectUri,
-        scope,
-        state,
-        OAuth2ResponseType.CODE,
-    )
 
     @BeforeEach
     fun beforeEach() {
         val requestScopes = setOf("scope1")
 
-        val client = Client(clientId, setOf("scope1", "scope2"), setOf(), setOf(OAuth2GrantType.AUTHORIZATION_CODE))
+        val client =
+            Client(clientId, setOf("scope1", "scope2"), setOf(redirectUri), setOf(OAuth2GrantType.AUTHORIZATION_CODE))
         val identity = Identity(username)
-        val codeToken = CodeToken(code, Instant.now(), identity, clientId, redirectUri, requestScopes)
 
+        val codeToken = CodeToken(code, Instant.now(), identity, clientId, redirectUri, requestScopes)
         val refreshToken = RefreshToken("test", Instant.now(), identity, clientId, requestScopes)
         val accessToken = AccessToken("test", "bearer", Instant.now(), identity, clientId, requestScopes, refreshToken)
 
-        every {
-            clientService.findByClientId(clientId).orElseThrow { InvalidClientException("client not found") }
-        } returns client
+        val redirectCode = RedirectCodeResponse(Instant.now(), code, state, redirectUri)
+
+        every { clientService.findByClientId(clientId) } returns Optional.of(client)
         every { clientService.validClient(client, clientSecret) } returns true
-        every {
-            identityService.identityOf(client, username).orElseThrow { InvalidIdentityException("identity not found") }
-        } returns identity
+        every { identityService.identityOf(client, username) } returns Optional.of(identity)
         every { tokenService.consumeCodeToken(code) } returns codeToken
         every { refreshTokenConverter.convertToToken(identity, clientId, requestScopes) } returns refreshToken
+        every { codeTokenConverter.convertToToken(identity, clientId, redirectUri, requestScopes) } returns codeToken
         every {
             accessTokenConverter.convertToToken(
                 identity,
@@ -97,6 +88,7 @@ internal class AuthorizationCodeGrantTokenServiceTest {
                 refreshToken
             )
         } returns accessToken
+        every { redirectCodeConverter.convertToToken(clientId, requestScopes, redirectUri) } returns redirectCode
     }
 
     @Test
@@ -106,7 +98,15 @@ internal class AuthorizationCodeGrantTokenServiceTest {
             path = EndpointConstants.AUTHORIZATION_PATH,
             method = HttpMethod.GET,
             headers = Headers(),
-            queryParameters = Params(),
+            queryParameters = Params(
+                mapOf(
+                    "client_id" to clientId,
+                    "redirect_uri" to redirectUri,
+                    "state" to state,
+                    "scope" to scope,
+                    "response_type" to "code",
+                )
+            ),
             formParameters = Params(),
         )
         val result = AuthorizationCodeGrantDefinition.redirectRequestValidation(callContextIn)
@@ -120,17 +120,57 @@ internal class AuthorizationCodeGrantTokenServiceTest {
             tokenService = tokenService,
         )
         println(contextOut)
+        // TODO validation
     }
-//
+
+    @Test
+    fun validAuthorizationCodeGrant_Token() {
+        val callContextIn = CallContextInImpl(
+            protocol = HttpProto.HTTP,
+            path = EndpointConstants.TOKEN_PATH,
+            method = HttpMethod.POST,
+            headers = Headers(
+                mapOf(
+                    "Content-Type" to "application/x-www-form-urlencoded"
+                )
+            ),
+            queryParameters = Params(),
+            formParameters = Params(
+                mapOf(
+                    "client_id" to clientId,
+                    "client_secret" to clientSecret,
+                    "username" to username,
+                    "password" to password,
+                    "redirect_uri" to redirectUri,
+                    "state" to state,
+                    "scope" to scope,
+                    "response_type" to "code",
+                )
+            ),
+        )
+        val result = AuthorizationCodeGrantDefinition.commonAuthorizeRequestValidation(callContextIn)
+        println(result.errors)
+        Assertions.assertTrue(result.errors.isEmpty())
+
+        val contextOut = AuthorizationCodeGrantDefinition.commonGrantCall(
+            callContextIn = callContextIn,
+            clientService = clientService,
+            identityService = identityService,
+            codeTokenConverter = codeTokenConverter,
+            tokenService = tokenService,
+        )
+        println(contextOut)
+    }
+
 //    @Test
 //    fun nonExistingClientException() {
-//        every { clientService.findByClientId(clientId) } returns null
+//        every { clientService.findByClientId(clientId) } returns Optional.empty()
 //
-//        assertThrows(
+//        Assertions.assertThrows(
 //            InvalidClientException::class.java
 //        ) { callRouterAuthorize.authorize(authorizationCodeRequest) }
 //    }
-//
+
 //    @Test
 //    fun invalidClientException() {
 //        val client = Client(clientId, setOf(), setOf(), setOf(OAuth2GrantType.AUTHORIZATION_CODE))

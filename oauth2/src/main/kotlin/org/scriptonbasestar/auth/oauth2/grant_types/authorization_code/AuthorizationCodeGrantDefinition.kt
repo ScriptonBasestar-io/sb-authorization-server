@@ -44,10 +44,10 @@ object AuthorizationCodeGrantDefinition {
         CallContextIn::queryParameters required {
             hasKeyValueNotBlank("client_id")
             hasKeyValueNotBlank("redirect_uri")
-//            hasKey("scope")
+            hasKey("scope")
 //            hasKey("nonce")
             hasKeyValueNotBlank("state")
-            hasKeyValue("response_type", OAuth2ResponseType.CODE)
+            hasKeyValue("response_type", OAuth2ResponseType.CODE, caseInsensitive = true)
         }
     }
 
@@ -104,11 +104,11 @@ object AuthorizationCodeGrantDefinition {
         }
         // TODO valid 완료후 자동매핑
         val redirectRequest = RedirectRequest(
-            clientId = callContextIn.formParameters["client_id"]!!,
-            responseType = OAuth2ResponseType.valueOf(callContextIn.formParameters["response_type"]!!),
-            redirectUri = callContextIn.formParameters["redirect_uri"]!!,
-            scope = callContextIn.formParameters["scope"]!!,
-            state = callContextIn.formParameters["state"]!!,
+            clientId = callContextIn.queryParameters["client_id"]!!,
+            responseType = OAuth2ResponseType.valueOf(callContextIn.queryParameters["response_type"]!!.uppercase()),
+            redirectUri = callContextIn.queryParameters["redirect_uri"]!!,
+            scope = callContextIn.queryParameters["scope"]!!,
+            state = callContextIn.queryParameters["state"]!!,
         )
         val code = redirectProcess(
             redirectRequest = redirectRequest,
@@ -129,7 +129,7 @@ object AuthorizationCodeGrantDefinition {
                 )
             )
             override val responseType: HttpResponseType = HttpResponseType.REDIRECT
-            override val responseValue: String = "$${code.redirectUri}&code=${code.code}&state=${code.state}"
+            override val responseValue: String = "${code.redirectUri}&code=${code.code}&state=${code.state}"
         }
     }
 
@@ -146,6 +146,9 @@ object AuthorizationCodeGrantDefinition {
         val clientId: String,
         val clientSecret: String,
 
+        val username: String,
+        val password: String,
+
         val responseType: OAuth2ResponseType = OAuth2ResponseType.CODE,
         val redirectUri: String?,
         val scope: String?,
@@ -154,23 +157,29 @@ object AuthorizationCodeGrantDefinition {
 
     val commonAuthorizeRequestValidation = Validation<CallContextIn> {
         CallContextIn::path required {
-            startsWith(EndpointConstants.AUTHORIZATION_PATH)
+            startsWith(EndpointConstants.TOKEN_PATH)
         }
 //        CallContextIn::protocol required {
 //            enum(HttpProto.HTTPS)
 //        }
         CallContextIn::method required {
-            enum(HttpMethod.GET)
+            enum(HttpMethod.POST)
         }
-//        CallContextIn::headers required {
+        CallContextIn::headers required {
 //            hasKeyValue("Content-Type", """application/json?.+""".toRegex())
-//        }
-        CallContextIn::formParameters required {
-//            hasKey("")
+            hasKeyValue("Content-Type", "application/x-www-form-urlencoded")
         }
         CallContextIn::queryParameters required {
+//            hasKey("")
+        }
+        CallContextIn::formParameters required {
             hasKeyValueNotBlank("client_id")
-//            hasKey("scope")
+            hasKeyValueNotBlank("client_secret")
+            hasKeyValueNotBlank("username")
+            hasKeyValueNotBlank("password")
+            hasKeyValueNotBlank("redirect_uri")
+            hasKey("scope")
+            hasKey("state")
             hasKeyValue("response_type", "code")
         }
     }
@@ -201,12 +210,12 @@ object AuthorizationCodeGrantDefinition {
             requestedClient.clientScopes
         }
 
-        // FIXME err... 여기 identity없을텐데 아닌가
         val requestedIdentity = identityService.identityOf(
-            requestedClient, "username????"
+            requestedClient, commonAuthorizeRequest.username
         ).orElseThrow {
             InvalidClientException("identity 있나?")
         }
+        // TODO vaLID CREDENTIAL
 
 //        GrantUtil.validateScopes(requestedClient, requestedIdentity, requestedScopes, identityService)
 
@@ -238,7 +247,9 @@ object AuthorizationCodeGrantDefinition {
         val commonAuthorizeRequest = AuthorizationCodeGrantDefinition.CommonAuthorizeRequest(
             clientId = callContextIn.formParameters["client_id"]!!,
             clientSecret = callContextIn.formParameters["client_secret"]!!,
-            responseType = OAuth2ResponseType.valueOf(callContextIn.formParameters["response_type"]!!),
+            username = callContextIn.formParameters["username"]!!,
+            password = callContextIn.formParameters["password"]!!,
+            responseType = OAuth2ResponseType.valueOf(callContextIn.formParameters["response_type"]!!.uppercase()),
             redirectUri = callContextIn.formParameters["redirect_uri"]!!,
             scope = callContextIn.formParameters["scope"]!!,
             state = callContextIn.formParameters["state"]!!,
@@ -276,7 +287,7 @@ object AuthorizationCodeGrantDefinition {
      * code_challenge_method=S256
      */
     data class MobileAuthorizeRequest(
-        val path: String = EndpointConstants.AUTHORIZATION_PATH,
+        val path: String = EndpointConstants.TOKEN_PATH,
         val method: Set<HttpMethod> = setOf(HttpMethod.GET),
 
         val clientId: String,
@@ -292,7 +303,7 @@ object AuthorizationCodeGrantDefinition {
 
     val mobileAuthorizeRequest = Validation<CallContextIn> {
         CallContextIn::path required {
-            startsWith(EndpointConstants.AUTHORIZATION_PATH)
+            startsWith(EndpointConstants.TOKEN_PATH)
         }
         CallContextIn::method required {
             enum(HttpMethod.GET)
