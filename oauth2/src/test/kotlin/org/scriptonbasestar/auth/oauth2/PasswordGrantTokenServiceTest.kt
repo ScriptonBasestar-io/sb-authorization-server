@@ -4,11 +4,17 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.scriptonbasestar.auth.http.Headers
+import org.scriptonbasestar.auth.http.HttpMethod
+import org.scriptonbasestar.auth.http.HttpProto
+import org.scriptonbasestar.auth.http.Params
+import org.scriptonbasestar.auth.oauth2.constants.EndpointConstants
 import org.scriptonbasestar.auth.oauth2.context.CallContextIn
-import org.scriptonbasestar.auth.oauth2.exceptions.InvalidClientException
-import org.scriptonbasestar.auth.oauth2.exceptions.InvalidIdentityException
+import org.scriptonbasestar.auth.oauth2.grant_types.password.PasswordGrantDefinition
 import org.scriptonbasestar.auth.oauth2.model.Client
 import org.scriptonbasestar.auth.oauth2.model.ClientService
 import org.scriptonbasestar.auth.oauth2.model.Identity
@@ -21,6 +27,7 @@ import org.scriptonbasestar.auth.oauth2.model.token.converter.CodeTokenConverter
 import org.scriptonbasestar.auth.oauth2.model.token.converter.RefreshTokenConverter
 import org.scriptonbasestar.auth.oauth2.types.OAuth2GrantType
 import java.time.Instant
+import java.util.*
 
 @ExtendWith(MockKExtension::class)
 internal class PasswordGrantTokenServiceTest {
@@ -34,7 +41,7 @@ internal class PasswordGrantTokenServiceTest {
     lateinit var clientService: ClientService
 
     @RelaxedMockK
-    lateinit var tokenStore: TokenService
+    lateinit var tokenService: TokenService
 
     @MockK
     lateinit var accessTokenConverter: AccessTokenConverter
@@ -50,21 +57,22 @@ internal class PasswordGrantTokenServiceTest {
     val username = "user-foo"
     val password = "password-bar"
     val scope = "scope1"
-    val scopes = setOf(scope)
+    val state = "123465"
 
     @BeforeEach
     fun before() {
         val client = Client(clientId, setOf("scope1", "scope2"), setOf(), setOf(OAuth2GrantType.PASSWORD))
         val identity = Identity(username)
         val requestScopes = setOf("scope1")
+        val allowedScopes = setOf("default1", "scope1")
         val refreshToken = RefreshToken("test", Instant.now(), identity, clientId, requestScopes)
         val accessToken = AccessToken("test", "bearer", Instant.now(), identity, clientId, requestScopes, refreshToken)
 
-        every { clientService.findByClientId(clientId).orElseThrow { InvalidClientException("client not found") } } returns client
+        every { clientService.findByClientId(clientId) } returns Optional.of(client)
         every { clientService.validClient(client, clientSecret) } returns true
-        every { identityService.identityOf(client, username).orElseThrow { InvalidIdentityException("identity not found") } } returns identity
+        every { identityService.identityOf(client, username) } returns Optional.of(identity)
         every { identityService.validCredentials(client, identity, password) } returns true
-        every { identityService.allowedScopes(client, identity, requestScopes) } returns scopes
+        every { identityService.allowedScopes(client, identity, requestScopes) } returns allowedScopes
         every { refreshTokenConverter.convertToToken(identity, clientId, requestScopes) } returns refreshToken
         every {
             accessTokenConverter.convertToToken(
@@ -75,13 +83,50 @@ internal class PasswordGrantTokenServiceTest {
             )
         } returns accessToken
     }
+    @Test
+    fun passwordGrant_Token() {
+        val callContextIn = CallContextInImpl(
+            protocol = HttpProto.HTTP,
+            path = EndpointConstants.AUTHORIZATION_PATH,
+            method = HttpMethod.POST,
+            headers = Headers(
+                mapOf(
+                    "Content-Type" to "application/x-www-form-urlencoded"
+                )
+            ),
+            queryParameters = Params(),
+            formParameters = Params(
+                mapOf(
+                    "client_id" to clientId,
+                    "client_secret" to clientSecret,
+                    "username" to username,
+                    "password" to password,
+                    "scope" to scope,
+                    "response_type" to "token",
+                )
+            ),
+        )
+        val result = PasswordGrantDefinition.passwordRequestValidation(callContextIn)
+        println(result.errors)
+        Assertions.assertTrue(result.errors.isEmpty())
+
+        val contextOut = PasswordGrantDefinition.passwordGrantCall(
+            callContextIn = callContextIn,
+            clientService = clientService,
+            identityService = identityService,
+            accessTokenConverter = accessTokenConverter,
+            refreshTokenConverter = refreshTokenConverter,
+            tokenService = tokenService,
+        )
+        println(contextOut)
+    }
 
 //    @Test
 //    fun validPasswordGrant() {
 //
 //        callRouterAuthorize.authorize(passwordGrantRequest)
 //
-//        verify { tokenStore.saveAccessToken(accessToken) }
+//        verify { tokenService.saveAccessToken(accessToken) }
 //    }
 //
 //    @Test

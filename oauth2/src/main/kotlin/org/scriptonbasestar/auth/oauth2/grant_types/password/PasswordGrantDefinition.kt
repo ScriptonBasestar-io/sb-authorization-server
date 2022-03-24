@@ -34,27 +34,25 @@ object PasswordGrantDefinition {
         val username: String,
         val password: String,
 
-        val responseType: OAuth2ResponseType = OAuth2ResponseType.CODE,
-        val redirectUri: String?,
+        val responseType: OAuth2ResponseType = OAuth2ResponseType.TOKEN,
         val scope: String?,
-        val state: String?,
     )
 
     val passwordRequestValidation = Validation<CallContextIn> {
         CallContextIn::path required {
-            pattern("""https://[a-zA-Z0-9-.]+/oauth/authorize""") hint ""
+            startsWith(EndpointConstants.AUTHORIZATION_PATH)
         }
         CallContextIn::method required {
-            enum(HttpMethod.POST) hint ""
+            enum(HttpMethod.POST)
         }
         CallContextIn::headers required {
 //            hasKeyValue("Content-Type", """application/json?.+""".toRegex())
-            hasKeyValue("Content-Type", "application/x-www-form-urlencoded") hint ""
-        }
-        CallContextIn::formParameters required {
-//            hasKey("")
+            hasKeyValue("Content-Type", "application/x-www-form-urlencoded")
         }
         CallContextIn::queryParameters required {
+//            hasKey("")
+        }
+        CallContextIn::formParameters required {
             hasKeyValueNotBlank("client_id") ex InvalidRequestException(
                 ErrorMessage.INVALID_REQUEST_FIELD_MESSAGE.format(
                     "client_id"
@@ -62,7 +60,7 @@ object PasswordGrantDefinition {
             )
             hasKeyValueNotBlank("client_secret") ex InvalidRequestException(
                 ErrorMessage.INVALID_REQUEST_FIELD_MESSAGE.format(
-                    "client_id"
+                    "client_secret"
                 )
             )
             hasKeyValueNotBlank("username") ex InvalidRequestException(
@@ -154,10 +152,8 @@ object PasswordGrantDefinition {
             clientSecret = callContextIn.formParameters["client_secret"]!!,
             username = callContextIn.formParameters["username"]!!,
             password = callContextIn.formParameters["password"]!!,
-            responseType = OAuth2ResponseType.valueOf(callContextIn.formParameters["response_type"]!!),
-            redirectUri = callContextIn.formParameters["redirect_uri"]!!,
+            responseType = OAuth2ResponseType.valueOf(callContextIn.formParameters["response_type"]!!.uppercase()),
             scope = callContextIn.formParameters["scope"]!!,
-            state = callContextIn.formParameters["state"]!!,
         )
         val accessToken = PasswordGrantDefinition.passwordRequestProcess(
             passwordRequest = passwordRequest,

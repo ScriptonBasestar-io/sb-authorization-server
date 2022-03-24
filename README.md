@@ -41,3 +41,8 @@ https://www.oauth.com/oauth2-servers/authorization/the-authorization-request/
 
 https://docs.microsoft.com/ko-kr/azure/active-directory/develop/single-and-multi-tenant-apps
 https://docs.microsoft.com/ko-kr/azure/active-directory/develop/howto-configure-publisher-domain
+
+## 툴
+* https://github.com/GluuFederation
+* https://github.com/goauthentik/authentik
+* https://github.com/ory/hydra

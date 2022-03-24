@@ -173,7 +173,11 @@ object AuthorizationCodeGrantDefinition {
 //            hasKey("")
         }
         CallContextIn::formParameters required {
-            hasKeyValueNotBlank("client_id")
+            hasKeyValueNotBlank("client_id") ex InvalidRequestException(
+                ErrorMessage.INVALID_REQUEST_FIELD_MESSAGE.format(
+                    "client_id"
+                )
+            )
             hasKeyValueNotBlank("client_secret")
             hasKeyValueNotBlank("username")
             hasKeyValueNotBlank("password")
