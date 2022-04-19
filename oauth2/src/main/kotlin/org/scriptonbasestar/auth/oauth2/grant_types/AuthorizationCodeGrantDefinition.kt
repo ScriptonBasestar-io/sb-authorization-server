@@ -1,4 +1,4 @@
-package org.scriptonbasestar.auth.oauth2.grant_types.authorization_code
+package org.scriptonbasestar.auth.oauth2.grant_types
 
 import org.scriptonbasestar.auth.http.Headers
 import org.scriptonbasestar.auth.http.HttpMethod
@@ -6,7 +6,6 @@ import org.scriptonbasestar.auth.oauth2.constants.EndpointConstants
 import org.scriptonbasestar.auth.oauth2.context.CallContextIn
 import org.scriptonbasestar.auth.oauth2.context.CallContextOut
 import org.scriptonbasestar.auth.oauth2.exceptions.*
-import org.scriptonbasestar.auth.oauth2.grant_types.ScopeParser
 import org.scriptonbasestar.auth.oauth2.model.ClientService
 import org.scriptonbasestar.auth.oauth2.model.IdentityService
 import org.scriptonbasestar.auth.oauth2.model.token.AccessToken
@@ -20,6 +19,7 @@ import org.scriptonbasestar.auth.oauth2.model.token.converter.RefreshTokenConver
 import org.scriptonbasestar.auth.oauth2.types.HttpResponseType
 import org.scriptonbasestar.auth.oauth2.types.OAuth2GrantType
 import org.scriptonbasestar.auth.oauth2.types.OAuth2ResponseType
+import org.scriptonbasestar.auth.oauth2.utils.ScopeParser
 import org.scriptonbasestar.validation.Validation
 import org.scriptonbasestar.validation.constraint.*
 
@@ -157,7 +157,7 @@ object AuthorizationCodeGrantDefinition {
 
     val commonAuthorizeRequestValidation = Validation<CallContextIn> {
         CallContextIn::path required {
-            startsWith(EndpointConstants.TOKEN_PATH)
+            startsWith(EndpointConstants.AUTHORIZATION_PATH)
         }
 //        CallContextIn::protocol required {
 //            enum(HttpProto.HTTPS)
@@ -184,7 +184,7 @@ object AuthorizationCodeGrantDefinition {
             hasKeyValueNotBlank("redirect_uri")
             hasKey("scope")
             hasKey("state")
-            hasKeyValue("response_type", "code")
+            hasKeyValue("response_type", OAuth2ResponseType.CODE.value)
         }
     }
 
@@ -242,13 +242,13 @@ object AuthorizationCodeGrantDefinition {
         codeTokenConverter: CodeTokenConverter,
         tokenService: TokenService,
     ): CallContextOut<CodeToken> {
-        val validResult = AuthorizationCodeGrantDefinition.commonAuthorizeRequestValidation(callContextIn)
+        val validResult = commonAuthorizeRequestValidation(callContextIn)
         if (validResult.errors.isNotEmpty()) {
             // FIXME 메시지 출력 json
             throw InvalidRequestException(validResult.errors.map { it.value }.joinToString(","))
         }
         // TODO valid 완료후 자동매핑
-        val commonAuthorizeRequest = AuthorizationCodeGrantDefinition.CommonAuthorizeRequest(
+        val commonAuthorizeRequest = CommonAuthorizeRequest(
             clientId = callContextIn.formParameters["client_id"]!!,
             clientSecret = callContextIn.formParameters["client_secret"]!!,
             username = callContextIn.formParameters["username"]!!,
@@ -258,7 +258,7 @@ object AuthorizationCodeGrantDefinition {
             scope = callContextIn.formParameters["scope"]!!,
             state = callContextIn.formParameters["state"]!!,
         )
-        val codeToken = AuthorizationCodeGrantDefinition.commonAuthorizeProcess(
+        val codeToken = commonAuthorizeProcess(
             commonAuthorizeRequest = commonAuthorizeRequest,
             clientService = clientService,
             identityService = identityService,
@@ -433,13 +433,13 @@ object AuthorizationCodeGrantDefinition {
         refreshTokenConverter: RefreshTokenConverter,
         tokenService: TokenService,
     ): CallContextOut<AccessToken> {
-        val validResult = AuthorizationCodeGrantDefinition.accessTokenRequestValidation(callContextIn)
+        val validResult = accessTokenRequestValidation(callContextIn)
         if (validResult.errors.isNotEmpty()) {
             // FIXME 메시지 출력 json
             throw InvalidRequestException(validResult.errors.map { it.value }.joinToString(","))
         }
         // TODO valid 완료후 자동매핑
-        val accessTokenRequest = AuthorizationCodeGrantDefinition.AccessTokenRequest(
+        val accessTokenRequest = AccessTokenRequest(
             path = callContextIn.path,
             method = callContextIn.method,
             clientId = callContextIn.formParameters["client_id"]!!,
@@ -449,7 +449,7 @@ object AuthorizationCodeGrantDefinition {
             codeVerifier = callContextIn.formParameters["code_verifier"]!!,
             grantType = OAuth2GrantType.valueOf(callContextIn.formParameters["grant_type"]!!),
         )
-        val accessToken = AuthorizationCodeGrantDefinition.tokenAuthorizeProcess(
+        val accessToken = tokenAuthorizeProcess(
             accessTokenRequest = accessTokenRequest,
             clientService = clientService,
             identityService = identityService,

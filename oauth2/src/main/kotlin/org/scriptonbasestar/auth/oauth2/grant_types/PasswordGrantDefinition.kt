@@ -1,4 +1,4 @@
-package org.scriptonbasestar.auth.oauth2.grant_types.password
+package org.scriptonbasestar.auth.oauth2.grant_types
 
 import org.scriptonbasestar.auth.http.Headers
 import org.scriptonbasestar.auth.http.HttpMethod
@@ -6,8 +6,6 @@ import org.scriptonbasestar.auth.oauth2.constants.EndpointConstants
 import org.scriptonbasestar.auth.oauth2.context.CallContextIn
 import org.scriptonbasestar.auth.oauth2.context.CallContextOut
 import org.scriptonbasestar.auth.oauth2.exceptions.*
-import org.scriptonbasestar.auth.oauth2.grant_types.GrantUtil
-import org.scriptonbasestar.auth.oauth2.grant_types.ScopeParser
 import org.scriptonbasestar.auth.oauth2.model.ClientService
 import org.scriptonbasestar.auth.oauth2.model.IdentityService
 import org.scriptonbasestar.auth.oauth2.model.token.AccessToken
@@ -17,6 +15,8 @@ import org.scriptonbasestar.auth.oauth2.model.token.converter.RefreshTokenConver
 import org.scriptonbasestar.auth.oauth2.types.HttpResponseType
 import org.scriptonbasestar.auth.oauth2.types.OAuth2GrantType
 import org.scriptonbasestar.auth.oauth2.types.OAuth2ResponseType
+import org.scriptonbasestar.auth.oauth2.utils.GrantUtil
+import org.scriptonbasestar.auth.oauth2.utils.ScopeParser
 import org.scriptonbasestar.validation.Validation
 import org.scriptonbasestar.validation.constraint.*
 
@@ -34,7 +34,7 @@ object PasswordGrantDefinition {
         val username: String,
         val password: String,
 
-        val responseType: OAuth2ResponseType = OAuth2ResponseType.TOKEN,
+        val responseType: OAuth2ResponseType = OAuth2ResponseType.CODE,
         val scope: String?,
     )
 
@@ -139,13 +139,13 @@ object PasswordGrantDefinition {
         refreshTokenConverter: RefreshTokenConverter,
         tokenService: TokenService,
     ): CallContextOut<AccessToken> {
-        val validResult = PasswordGrantDefinition.passwordRequestValidation.validate(callContextIn)
+        val validResult = passwordRequestValidation.validate(callContextIn)
         if (validResult.errors.isNotEmpty()) {
             // FIXME 메시지 출력 json
             throw InvalidRequestException(validResult.errors.map { it.value }.joinToString(","))
         }
         // TODO valid 완료후 자동매핑
-        val passwordRequest = PasswordGrantDefinition.PasswordRequest(
+        val passwordRequest = PasswordRequest(
             path = callContextIn.path,
             method = callContextIn.method,
             clientId = callContextIn.formParameters["client_id"]!!,
@@ -155,7 +155,7 @@ object PasswordGrantDefinition {
             responseType = OAuth2ResponseType.valueOf(callContextIn.formParameters["response_type"]!!.uppercase()),
             scope = callContextIn.formParameters["scope"]!!,
         )
-        val accessToken = PasswordGrantDefinition.passwordRequestProcess(
+        val accessToken = passwordRequestProcess(
             passwordRequest = passwordRequest,
             clientService = clientService,
             identityService = identityService,

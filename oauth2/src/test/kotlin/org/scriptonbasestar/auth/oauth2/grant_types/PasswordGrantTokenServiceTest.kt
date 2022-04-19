@@ -1,4 +1,4 @@
-package org.scriptonbasestar.auth.oauth2
+package org.scriptonbasestar.auth.oauth2.grant_types
 
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -12,9 +12,9 @@ import org.scriptonbasestar.auth.http.Headers
 import org.scriptonbasestar.auth.http.HttpMethod
 import org.scriptonbasestar.auth.http.HttpProto
 import org.scriptonbasestar.auth.http.Params
+import org.scriptonbasestar.auth.oauth2.CallContextInImpl
 import org.scriptonbasestar.auth.oauth2.constants.EndpointConstants
 import org.scriptonbasestar.auth.oauth2.context.CallContextIn
-import org.scriptonbasestar.auth.oauth2.grant_types.password.PasswordGrantDefinition
 import org.scriptonbasestar.auth.oauth2.model.Client
 import org.scriptonbasestar.auth.oauth2.model.ClientService
 import org.scriptonbasestar.auth.oauth2.model.Identity
@@ -26,6 +26,7 @@ import org.scriptonbasestar.auth.oauth2.model.token.converter.AccessTokenConvert
 import org.scriptonbasestar.auth.oauth2.model.token.converter.CodeTokenConverter
 import org.scriptonbasestar.auth.oauth2.model.token.converter.RefreshTokenConverter
 import org.scriptonbasestar.auth.oauth2.types.OAuth2GrantType
+import org.scriptonbasestar.auth.oauth2.types.OAuth2ResponseType
 import java.time.Instant
 import java.util.*
 
@@ -102,7 +103,7 @@ internal class PasswordGrantTokenServiceTest {
                     "username" to username,
                     "password" to password,
                     "scope" to scope,
-                    "response_type" to "token",
+                    "response_type" to OAuth2ResponseType.CODE.value,
                 )
             ),
         )

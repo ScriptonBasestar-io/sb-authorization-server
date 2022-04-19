@@ -1,12 +1,13 @@
-package org.scriptonbasestar.auth.oauth2.grant_types.refresh_token
+package org.scriptonbasestar.auth.oauth2.grant_types
 
 import org.scriptonbasestar.auth.http.Headers
 import org.scriptonbasestar.auth.http.HttpMethod
 import org.scriptonbasestar.auth.oauth2.constants.EndpointConstants
 import org.scriptonbasestar.auth.oauth2.context.CallContextIn
 import org.scriptonbasestar.auth.oauth2.context.CallContextOut
-import org.scriptonbasestar.auth.oauth2.exceptions.*
-import org.scriptonbasestar.auth.oauth2.grant_types.ScopeParser
+import org.scriptonbasestar.auth.oauth2.exceptions.InvalidClientException
+import org.scriptonbasestar.auth.oauth2.exceptions.InvalidGrantException
+import org.scriptonbasestar.auth.oauth2.exceptions.InvalidRequestException
 import org.scriptonbasestar.auth.oauth2.model.ClientService
 import org.scriptonbasestar.auth.oauth2.model.IdentityService
 import org.scriptonbasestar.auth.oauth2.model.token.AccessToken
@@ -16,88 +17,62 @@ import org.scriptonbasestar.auth.oauth2.model.token.converter.RefreshTokenConver
 import org.scriptonbasestar.auth.oauth2.types.HttpResponseType
 import org.scriptonbasestar.auth.oauth2.types.OAuth2GrantType
 import org.scriptonbasestar.auth.oauth2.types.OAuth2ResponseType
+import org.scriptonbasestar.auth.oauth2.utils.ScopeParser
 import org.scriptonbasestar.validation.Validation
 import org.scriptonbasestar.validation.constraint.*
 
-object RefreshTokenGrantDefinition {
-    data class RefreshTokenRequest(
+object ClientCredentialsGrantDefinition {
+    data class ClientCredentialsRequest(
         val path: String = EndpointConstants.AUTHORIZATION_PATH,
         val method: HttpMethod = HttpMethod.POST,
 
         val clientId: String,
         val clientSecret: String,
 
-        val refreshToken: String,
-
         val responseType: OAuth2ResponseType = OAuth2ResponseType.CODE,
-        val redirectUri: String?,
         val scope: String?,
-        val state: String?,
     )
-
-    val refreshTokenRequestValidation = Validation<CallContextIn> {
+    val clientCredentialsRequestValidation = Validation<CallContextIn> {
         CallContextIn::path required {
-            pattern("""https://[a-zA-Z0-9-.]+/oauth/authorize""") hint ""
+            pattern("""https://[a-zA-Z0-9-.]+/oauth/authorize""")
         }
         CallContextIn::method required {
-            enum(HttpMethod.POST) hint ""
+            enum(HttpMethod.POST)
         }
         CallContextIn::headers required {
 //            hasKeyValue("Content-Type", """application/json?.+""".toRegex())
-            hasKeyValue("Content-Type", "application/x-www-form-urlencoded") hint ""
+            hasKeyValue("Content-Type", "application/x-www-form-urlencoded")
         }
         CallContextIn::formParameters required {
 //            hasKey("")
         }
         CallContextIn::queryParameters required {
-            hasKeyValueNotBlank("client_id") ex InvalidRequestException(
-                ErrorMessage.INVALID_REQUEST_FIELD_MESSAGE.format(
-                    "client_id"
-                )
-            )
-            hasKeyValueNotBlank("client_secret") ex InvalidRequestException(
-                ErrorMessage.INVALID_REQUEST_FIELD_MESSAGE.format(
-                    "client_id"
-                )
-            )
-            hasKeyValueNotBlank("refresh_token") ex InvalidRequestException(
-                ErrorMessage.INVALID_REQUEST_FIELD_MESSAGE.format(
-                    "refresh_token"
-                )
-            )
+            hasKey("client_id")
+            hasKey("client_secret")
             hasKey("scope")
         }
     }
-
-    fun refreshTokenRequestProcess(
-        refreshTokenRequest: RefreshTokenRequest,
+    fun clientCredentialsProcessor(
+        clientCredentialsRequest: ClientCredentialsRequest,
         clientService: ClientService,
         accessTokenConverter: AccessTokenConverter,
         refreshTokenConverter: RefreshTokenConverter,
         tokenService: TokenService,
     ): AccessToken {
-        val authorizedGrantType = OAuth2GrantType.REFRESH_TOKEN
-        val requestedClient = clientService.findByClientId(refreshTokenRequest.clientId).orElseThrow {
+        val authorizedGrantType = OAuth2GrantType.PASSWORD
+
+        val requestedClient = clientService.findByClientId(clientCredentialsRequest.clientId).orElseThrow {
             InvalidClientException("client for clientId you provided is null")
         }
-
+        if (!clientService.validClient(requestedClient, clientCredentialsRequest.clientSecret)) {
+            throw InvalidClientException("client data is invalid")
+        }
         if (!requestedClient.authorizedGrantTypes.contains(authorizedGrantType)) {
             throw InvalidGrantException("Authorize not allowed: '$authorizedGrantType'")
         }
 
-        if (!clientService.validClient(requestedClient, refreshTokenRequest.clientSecret)) {
-            throw InvalidClientException("client data is invalid")
-        }
-        val refreshToken =
-            tokenService.refreshToken(refreshTokenRequest.refreshToken) ?: throw InvalidGrantException("invalid grant")
-
-        if (refreshToken.clientId != refreshTokenRequest.clientId) {
-            throw InvalidGrantException("invalid grant")
-        }
-
-//        scope가 원래 access token의 scope보다 넓을 수 없음
-        val requestedScopes = if (refreshTokenRequest.scope != null && refreshTokenRequest.scope.isNotBlank()) {
-            ScopeParser.parseScopes(refreshTokenRequest.scope).toSet()
+        val requestedScopes = if (clientCredentialsRequest.scope != null && clientCredentialsRequest.scope.isNotBlank()) {
+            ScopeParser.parseScopes(clientCredentialsRequest.scope).toSet()
         } else {
             requestedClient.clientScopes
         }
@@ -105,17 +80,22 @@ object RefreshTokenGrantDefinition {
         val requestedIdentity = null
 
         val accessToken = accessTokenConverter.convertToToken(
-            refreshToken.identity,
-            refreshToken.clientId,
-            refreshToken.scopes,
-            refreshTokenConverter.convertToToken(refreshToken)
+            requestedIdentity,
+            requestedClient.clientId,
+            requestedScopes,
+            refreshTokenConverter.convertToToken(
+                requestedIdentity,
+                requestedClient.clientId,
+                requestedScopes
+            )
         )
 
         tokenService.saveAccessToken(accessToken)
+
         return accessToken
     }
 
-    fun refreshTokenGrantCall(
+    fun passwordGrantCall(
         callContextIn: CallContextIn,
         clientService: ClientService,
         identityService: IdentityService,
@@ -123,25 +103,22 @@ object RefreshTokenGrantDefinition {
         refreshTokenConverter: RefreshTokenConverter,
         tokenService: TokenService,
     ): CallContextOut<AccessToken> {
-        val validResult = refreshTokenRequestValidation.validate(callContextIn)
+        val validResult = PasswordGrantDefinition.passwordRequestValidation.validate(callContextIn)
         if (validResult.errors.isNotEmpty()) {
             // FIXME 메시지 출력 json
             throw InvalidRequestException(validResult.errors.map { it.value }.joinToString(","))
         }
         // TODO valid 완료후 자동매핑
-        val refreshTokenRequest = RefreshTokenRequest(
+        val clientCredentialsRequest = ClientCredentialsRequest(
             path = callContextIn.path,
             method = callContextIn.method,
             clientId = callContextIn.formParameters["client_id"]!!,
             clientSecret = callContextIn.formParameters["client_secret"]!!,
             responseType = OAuth2ResponseType.valueOf(callContextIn.formParameters["response_type"]!!),
-            refreshToken = callContextIn.formParameters["refresh_token"]!!,
-            redirectUri = callContextIn.formParameters["redirect_uri"]!!,
             scope = callContextIn.formParameters["scope"]!!,
-            state = callContextIn.formParameters["state"]!!,
         )
-        val accessToken = refreshTokenRequestProcess(
-            refreshTokenRequest = refreshTokenRequest,
+        val accessToken = clientCredentialsProcessor(
+            clientCredentialsRequest = clientCredentialsRequest,
             clientService = clientService,
             accessTokenConverter = accessTokenConverter,
             refreshTokenConverter = refreshTokenConverter,

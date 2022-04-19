@@ -1,4 +1,4 @@
-package org.scriptonbasestar.auth.oauth2
+package org.scriptonbasestar.auth.oauth2.grant_types
 
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
@@ -11,6 +11,7 @@ import org.scriptonbasestar.auth.oauth2.model.token.TokenService
 import org.scriptonbasestar.auth.oauth2.model.token.converter.AccessTokenConverter
 import org.scriptonbasestar.auth.oauth2.model.token.converter.CodeTokenConverter
 import org.scriptonbasestar.auth.oauth2.model.token.converter.RefreshTokenConverter
+import kotlin.test.Test
 
 @ExtendWith(MockKExtension::class)
 internal class ClientCredentialsTokenServiceTest {
@@ -34,6 +35,11 @@ internal class ClientCredentialsTokenServiceTest {
 
     @MockK
     lateinit var codeTokenConverter: CodeTokenConverter
+
+    @Test
+    fun test1() {
+        println("test1")
+    }
 
 //    @BeforeEach
 //    fun before() {

@@ -1,4 +1,4 @@
-package org.scriptonbasestar.auth.oauth2.grant_types
+package org.scriptonbasestar.auth.oauth2.utils
 
 import org.scriptonbasestar.auth.oauth2.exceptions.InvalidScopeException
 import org.scriptonbasestar.auth.oauth2.model.Client

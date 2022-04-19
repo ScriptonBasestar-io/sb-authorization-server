@@ -9,7 +9,6 @@ import org.scriptonbasestar.auth.http.HttpProto
 import org.scriptonbasestar.auth.http.Params
 import org.scriptonbasestar.auth.oauth2.CallContextInImpl
 import org.scriptonbasestar.auth.oauth2.constants.EndpointConstants
-import org.scriptonbasestar.auth.oauth2.grant_types.authorization_code.AuthorizationCodeGrantDefinition
 import kotlin.test.Test
 
 /**
@@ -17,7 +16,7 @@ import kotlin.test.Test
  * ph2 request login action - response token
  */
 @ExtendWith(MockKExtension::class)
-class AuthorizeDefinitionTest {
+class AuthorizeCodeGrantDefinitionTest2 {
 
     @Test
     fun loginUrl_success_case() {
@@ -74,7 +73,7 @@ class AuthorizeDefinitionTest {
         val callContext = CallContextInImpl(
             protocol = HttpProto.HTTP,
             path = EndpointConstants.AUTHORIZATION_PATH,
-            method = HttpMethod.GET,
+            method = HttpMethod.POST,
             headers = Headers(
                 mapOf(
                     "Content-Type" to "application/json"

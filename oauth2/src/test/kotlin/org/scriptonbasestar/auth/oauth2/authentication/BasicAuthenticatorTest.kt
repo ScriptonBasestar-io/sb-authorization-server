@@ -1,11 +1,10 @@
-package org.scriptonbasestar.auth.oauth2.auth
+package org.scriptonbasestar.auth.oauth2.authentication
 
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.scriptonbasestar.auth.http.Headers
-import org.scriptonbasestar.auth.oauth2.authentication.BasicAuthenticator
 import org.scriptonbasestar.auth.oauth2.context.CallContextIn
 import java.util.*
 

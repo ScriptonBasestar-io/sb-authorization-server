@@ -1,4 +1,4 @@
-package org.scriptonbasestar.auth.oauth2.grant_types
+package org.scriptonbasestar.auth.oauth2.utils
 
 object ScopeParser {
     private val SCOPE_SEPARATOR = "[ +]+".toRegex()

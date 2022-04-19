@@ -1,4 +1,4 @@
-package org.scriptonbasestar.auth.oauth2
+package org.scriptonbasestar.auth.oauth2.grant_types
 
 import io.mockk.every
 import io.mockk.impl.annotations.MockK

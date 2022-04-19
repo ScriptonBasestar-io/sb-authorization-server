@@ -1,8 +1,7 @@
-package org.scriptonbasestar.auth.oauth2.scope
+package org.scriptonbasestar.auth.oauth2.utils
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.scriptonbasestar.auth.oauth2.grant_types.ScopeParser
 
 internal class ScopeParserTest {
     @Test
